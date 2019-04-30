@@ -1,0 +1,4 @@
+apiVersion: app.lightbend.com/v1alpha1
+kind: AkkaCluster
+metadata:
+  name: example-akkacluster
