@@ -2,40 +2,18 @@
 
 Kubernetes operator for applications using Akka clustering
 
-* verbs
-  * add
-  * update
-  * delete
+## install the CRD
 
-* kubectl describe help:
-  * show node connectivity status
-  * show akka management summaries
-  * read akka events into kubernetes events
+this needs to be done once per cluster
 
-* app phases
-  * install app
-  * roll out config changes and updates
-  * mainteance, day 2 things
+```bash
+kubectl apply -f ./deploy/crds/app_v1alpha1_akkacluster_crd.yaml
+```
 
-* add, remove, down nodes (scale)
-  * shutdown oldest first so keeps moving singleton
+## install the controller
 
-* separate image from configuration
+in each namespace where akkacluster apps are desired
 
-* autoscaling via telemetry
-
-* remoting serialization compatible
-
-* precheck join config, incompatible stop before try
-
-* rebalancing shuffle, move entities coodinated as nodes come up
-
-* drain shards off node before shutdown
-
-* option to full stop so streaming not split between versions
-
-* set rolling update policy
-
-* volume mounting, writable file system
-
-* storage service checks
+```bash
+kubectl apply -f ./deploy
+```
