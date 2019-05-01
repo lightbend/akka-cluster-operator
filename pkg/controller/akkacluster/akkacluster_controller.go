@@ -2,14 +2,19 @@ package akkacluster
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"reflect"
 
 	appv1alpha1 "github.com/lightbend/akka-cluster-operator/pkg/apis/app/v1alpha1"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -78,7 +83,7 @@ type ReconcileAkkaCluster struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger := log.WithValues("name", fmt.Sprintf("%s/%s", request.Namespace, request.Name))
 	reqLogger.Info("Reconciling AkkaCluster")
 
 	// Fetch the AkkaCluster instance
@@ -95,13 +100,17 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 		return reconcile.Result{}, err
 	}
 
+	// Below are some default installer steps, meaning it'll set things up and that's it.
+	// TODO: handle lifecycle changes like updates to spec and scale which need to propogate to deployment.
+	// TODO: handle akka cluster status updates.
+
 	// helper function to call create and requeue for next step
 	createResource := func(obj runtime.Object) (reconcile.Result, error) {
 		if err := r.client.Create(context.TODO(), obj); err != nil {
-			reqLogger.Info("Tried to create a new resource", "name", akkaCluster.Name, "kind", obj.GetObjectKind().GroupVersionKind().Kind, "error", err)
+			reqLogger.Info("Tried to create a new resource", "kind", reflect.TypeOf(obj), "error", err)
 			return reconcile.Result{}, err
 		}
-		reqLogger.Info("Creating resource", "name", akkaCluster.Name, "kind", obj.GetObjectKind().GroupVersionKind().Kind)
+		reqLogger.Info("Creating resource", "kind", reflect.TypeOf(obj))
 		return reconcile.Result{Requeue: true}, nil
 	}
 
@@ -209,10 +218,50 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 	}
 
 	// set cluster status
-	if akkaCluster.Status.Leader != "ohai" {
-		akkaCluster.Status = appv1alpha1.AkkaClusterStatus{
-			Leader: "ohai",
+	pods := &corev1.PodList{}
+	labelSelector := labels.SelectorFromSet(deployment.Spec.Selector.MatchLabels)
+	listOps := &client.ListOptions{Namespace: akkaCluster.Namespace, LabelSelector: labelSelector}
+	err = r.client.List(context.TODO(), listOps, pods)
+	if err != nil {
+		reqLogger.Info("error fetching pods", "err", err)
+		return reconcile.Result{Requeue: true}, fmt.Errorf("failed to get pods: %v", err)
+	}
+
+	findManagementPort := func(pod corev1.Pod) int32 {
+		for _, container := range pod.Spec.Containers {
+			for _, port := range container.Ports {
+				if port.Name == "management" {
+					return port.ContainerPort
+				}
+			}
 		}
+		return 8558
+	}
+
+	currentStatus := appv1alpha1.AkkaClusterStatus{}
+	for _, pod := range pods.Items {
+		ip := pod.Status.PodIP
+		port := findManagementPort(pod)
+		if ip == "" || port == 0 {
+			continue
+		}
+		reqLogger.Info("fetching /cluster/members/", "pod", ip, "port", port)
+		resp, err := http.Get(fmt.Sprintf("http://%s:%d/cluster/members/", ip, port))
+		if err == nil {
+			body, err := ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err == nil && json.Unmarshal(body, &currentStatus) == nil {
+				// managed to read in someone's cluster status, otherwise keep searching
+				reqLogger.Info("found cluster status")
+				break
+			}
+		} else {
+			reqLogger.Info("error fetching cluster/members", "err", err)
+		}
+	}
+	if !reflect.DeepEqual(akkaCluster.Status, currentStatus) {
+		reqLogger.Info("set cluster status")
+		akkaCluster.Status = currentStatus
 		err := r.client.Status().Update(context.TODO(), akkaCluster)
 		if err != nil {
 			return reconcile.Result{}, err
