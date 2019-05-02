@@ -1,3 +1,6 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/lightbend/akka-cluster-operator)](https://goreportcard.com/report/github.com/lightbend/akka-cluster-operator)
+
+
 # akka-cluster-operator
 
 Kubernetes operator for applications using Akka clustering. This is demo-ware, a strawman for
