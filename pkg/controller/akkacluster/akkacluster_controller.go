@@ -101,7 +101,7 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 	}
 
 	// Below are some default installer steps, meaning it'll set things up and that's it.
-	// TODO: handle lifecycle changes like updates to spec and scale which need to propogate to deployment.
+	// TODO: handle lifecycle changes like updates to spec and scale which need to propagate to deployment.
 	// TODO: handle akka cluster status updates.
 
 	// helper function to call create and requeue for next step
