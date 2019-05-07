@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# to simulate GitHub environment outside of Actions:
+#   mount /var/run/docker.sock to aim container docker client at host service
+#   mount source code to /github/workspace
+#   set working directory to /github/workspace
+#   set environment
+#       GITHUB_WORKSPACE=/github/workspace
+#       GITHUB_REPOSITORY=organization/repo-name
+if test -z "$GITHUB_WORKSPACE"; then
+    GITHUB_WORKSPACE="/github/workspace"
+fi
+if test -z "$GITHUB_REPOSITORY"; then
+    GITHUB_REPOSITORY=$( pwd | sed -Ee 's,.*/src/github.com/([^/]+/[^/]+).*,\1,' )
+fi
+
+( cd ../../../ && docker run \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$(pwd):${GITHUB_WORKSPACE}" \
+    -w "${GITHUB_WORKSPACE}" \
+    --env "GITHUB_REPOSITORY=$GITHUB_REPOSITORY" \
+    --env "GITHUB_WORKSPACE=$GITHUB_WORKSPACE" \
+    "$@"
+)
