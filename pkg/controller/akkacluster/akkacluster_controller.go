@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"reflect"
 
-	appv1alpha1 "github.com/lightbend/akka-cluster-operator/pkg/apis/app/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
@@ -25,6 +24,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	appv1alpha1 "github.com/lightbend/akka-cluster-operator/pkg/apis/app/v1alpha1"
 )
 
 var log = logf.Log.WithName("controller_akkacluster")
@@ -133,7 +134,7 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 		role.Name = akkaCluster.Name
 		role.Namespace = akkaCluster.Namespace
 		role.Rules = []rbac.PolicyRule{
-			rbac.PolicyRule{
+			{
 				APIGroups: []string{""},
 				Resources: []string{"pods"},
 				Verbs:     []string{"get", "watch", "list"},
@@ -157,7 +158,7 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 			Name:     role.Name,
 		}
 		roleBinding.Subjects = []rbac.Subject{
-			rbac.Subject{
+			{
 				Kind: serviceAccount.Kind,
 				Name: serviceAccount.Name,
 			},
