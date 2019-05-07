@@ -8,7 +8,7 @@ workflow "test on PRs" {
 
 action "go-tools" {
   uses = "./.github/action/go-tools"
-  args = "test ./..."
+  args = "test -race ./..."
 }
 
 workflow "build latest on push to master" {
