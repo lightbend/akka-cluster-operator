@@ -49,6 +49,6 @@ action "push to bintray" {
 
 action "goreportcard" {
   uses = "./.github/action/curl"
-  args = "-d repo=github.com/${GITHUB_REPOSITORY} https://goreportcard.com/checks"
+  args = "-d repo=github.com/lightbend/akka-cluster-operator https://goreportcard.com/checks"
   needs = ["if master"]
 }
