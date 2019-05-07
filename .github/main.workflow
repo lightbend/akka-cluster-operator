@@ -1,8 +1,7 @@
 workflow "test on PRs" {
-  on       = "pull_request"
-
+  on = "pull_request"
   resolves = [
-    "go-tools"
+    "go-tools",
   ]
 }
 
@@ -12,46 +11,44 @@ action "go-tools" {
 }
 
 workflow "build latest on push to master" {
-  on       = "push"
-
+  on = "push"
   resolves = [
-    "GitHub Action for Docker"
+    "goreportcard",
+    "push to bintray",
   ]
 }
 
-action "Filters for GitHub Actions" {
+action "if master" {
   uses = "actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da"
   args = "branch master"
 }
 
 action "operator-sdk" {
-  uses  = "./.github/action/operator-sdk"
-  args  = "build lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest"
-
-  needs = [
-    "Filters for GitHub Actions"
-  ]
+  uses = "./.github/action/operator-sdk"
+  args = "build lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest"
+  needs = ["if master"]
 }
 
-action "Docker Registry" {
-  uses    = "actions/docker/login@8cdf801b322af5f369e00d85e9cf3a7122f49108"
-
-  needs   = [
-    "operator-sdk"
+action "bintray login" {
+  uses = "actions/docker/login@8cdf801b322af5f369e00d85e9cf3a7122f49108"
+  needs = [
+    "operator-sdk",
   ]
-
   secrets = [
     "DOCKER_REGISTRY_URL",
     "DOCKER_USERNAME",
-    "DOCKER_PASSWORD"
+    "DOCKER_PASSWORD",
   ]
 }
 
-action "GitHub Action for Docker" {
-  uses  = "actions/docker/cli@8cdf801b322af5f369e00d85e9cf3a7122f49108"
-  args  = "push lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest"
+action "push to bintray" {
+  uses = "actions/docker/cli@8cdf801b322af5f369e00d85e9cf3a7122f49108"
+  args = "push lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest"
+  needs = ["bintray login"]
+}
 
-  needs = [
-    "Docker Registry"
-  ]
+action "goreportcard" {
+  uses = "./.github/action/curl"
+  args = "-d repo=github.com/${GITHUB_REPOSITORY} https://goreportcard.com/checks"
+  needs = ["if master"]
 }
