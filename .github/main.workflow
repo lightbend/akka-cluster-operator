@@ -1,11 +1,12 @@
 workflow "test on PRs" {
+  resolves = ["go test -race ./..."]
   on = "pull_request"
-  resolves = [
-    "go-tools",
-  ]
 }
 
-action "go-tools" {
+action "go test -race ./..." {
+  needs = [
+    "pull request opened",
+  ]
   uses = "./.github/action/go-tools"
   args = "test -race ./..."
 }
@@ -51,4 +52,9 @@ action "goreportcard" {
   uses = "./.github/action/curl"
   args = "-d repo=github.com/lightbend/akka-cluster-operator https://goreportcard.com/checks"
   needs = ["if master"]
+}
+
+action "pull request opened" {
+  uses = "actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da"
+  args = "action opened"
 }
