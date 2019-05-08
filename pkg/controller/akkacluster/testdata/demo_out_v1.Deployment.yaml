@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  name: akka-cluster-demo
+  namespace: space
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: akka-cluster-demo
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: akka-cluster-demo
+    spec:
+      containers:
+      - env:
+        - name: AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME
+          value: akka-cluster-demo
+        image: akka-cluster-demo:1.0.2
+        imagePullPolicy: Never
+        livenessProbe:
+          tcpSocket:
+            port: 8558
+        name: main
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 2552
+          name: remoting
+        - containerPort: 8558
+          name: management
+        resources: {}
+      serviceAccountName: akka-cluster-demo
+status: {}
