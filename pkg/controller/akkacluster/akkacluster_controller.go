@@ -10,12 +10,9 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -55,9 +52,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner AkkaCluster
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	// Watch for changes to secondary resources and requeue the owner AkkaCluster
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &appv1alpha1.AkkaCluster{},
 	})
@@ -105,122 +101,25 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 	// TODO: handle lifecycle changes like updates to spec and scale which need to propagate to deployment.
 	// TODO: handle akka cluster status updates.
 
-	// helper function to call create and requeue for next step
-	createResource := func(obj runtime.Object) (reconcile.Result, error) {
-		if err := r.client.Create(context.TODO(), obj); err != nil {
-			reqLogger.Info("Tried to create a new resource", "kind", reflect.TypeOf(obj), "error", err)
-			return reconcile.Result{}, err
-		}
-		reqLogger.Info("Creating resource", "kind", reflect.TypeOf(obj))
-		return reconcile.Result{Requeue: true}, nil
-	}
-
-	// create service account
-	serviceAccount := &corev1.ServiceAccount{}
-	err = r.client.Get(context.TODO(), request.NamespacedName, serviceAccount)
-	if err != nil && errors.IsNotFound(err) {
-		serviceAccount.Name = akkaCluster.Name
-		serviceAccount.Namespace = akkaCluster.Namespace
-		if err := controllerutil.SetControllerReference(akkaCluster, serviceAccount, r.scheme); err != nil {
-			return reconcile.Result{}, err
-		}
-		return createResource(serviceAccount)
-	}
-
-	// create pod-reader role
-	role := &rbac.Role{}
-	err = r.client.Get(context.TODO(), request.NamespacedName, role)
-	if err != nil && errors.IsNotFound(err) {
-		role.Name = akkaCluster.Name
-		role.Namespace = akkaCluster.Namespace
-		role.Rules = []rbac.PolicyRule{
-			{
-				APIGroups: []string{""},
-				Resources: []string{"pods"},
-				Verbs:     []string{"get", "watch", "list"},
-			},
-		}
-		if err := controllerutil.SetControllerReference(akkaCluster, role, r.scheme); err != nil {
-			return reconcile.Result{}, err
-		}
-		return createResource(role)
-	}
-
-	// create role binding
-	roleBinding := &rbac.RoleBinding{}
-	err = r.client.Get(context.TODO(), request.NamespacedName, roleBinding)
-	if err != nil && errors.IsNotFound(err) {
-		roleBinding.Name = akkaCluster.Name
-		roleBinding.Namespace = akkaCluster.Namespace
-		roleBinding.RoleRef = rbac.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     role.Kind,
-			Name:     role.Name,
-		}
-		roleBinding.Subjects = []rbac.Subject{
-			{
-				Kind: serviceAccount.Kind,
-				Name: serviceAccount.Name,
-			},
-		}
-		if err := controllerutil.SetControllerReference(akkaCluster, roleBinding, r.scheme); err != nil {
-			return reconcile.Result{}, err
-		}
-		return createResource(roleBinding)
-	}
-
-	// create deployment
-	deployment := &appsv1.Deployment{}
-	err = r.client.Get(context.TODO(), request.NamespacedName, deployment)
-	if err != nil && errors.IsNotFound(err) {
-		deployment.Name = akkaCluster.Name
-		deployment.Namespace = akkaCluster.Namespace
-		deployment.Spec = akkaCluster.Spec
-
-		deployment.Spec.Template.Spec.ServiceAccountName = serviceAccount.Name
-
-		makeSet := func(m map[string]string, k string, v string) map[string]string {
-			if m == nil {
-				m = make(map[string]string)
+	// generateResources populates akkaCluster with defaults and returns list of resources to check
+	for _, resource := range generateResources(akkaCluster) {
+		err = r.client.Get(context.TODO(), request.NamespacedName, resource)
+		if err != nil && errors.IsNotFound(err) {
+			if err := controllerutil.SetControllerReference(akkaCluster, resource, r.scheme); err != nil {
+				return reconcile.Result{}, err
 			}
-			m[k] = v
-			return m
+			if err := r.client.Create(context.TODO(), resource); err != nil {
+				reqLogger.Info("Tried to create a new resource", "kind", reflect.TypeOf(resource), "error", err)
+				return reconcile.Result{}, err
+			}
+			reqLogger.Info("Creating resource", "kind", reflect.TypeOf(resource))
+			return reconcile.Result{Requeue: true}, nil
 		}
-		deployment.Labels = makeSet(deployment.Labels, "app", akkaCluster.Name) // needed?
-		if deployment.Spec.Selector == nil {
-			deployment.Spec.Selector = &metav1.LabelSelector{}
-		}
-		deployment.Spec.Selector.MatchLabels = makeSet(deployment.Spec.Selector.MatchLabels, "app", akkaCluster.Name)
-		deployment.Spec.Template.Labels = makeSet(deployment.Spec.Template.Labels, "app", akkaCluster.Name)
-
-		deployment.Spec.Strategy.Type = appsv1.RollingUpdateDeploymentStrategyType
-		one := intstr.FromInt(1)
-		zero := intstr.FromInt(0)
-		if deployment.Spec.Strategy.RollingUpdate == nil {
-			deployment.Spec.Strategy.RollingUpdate = &appsv1.RollingUpdateDeployment{}
-		}
-		deployment.Spec.Strategy.RollingUpdate.MaxSurge = &one
-		deployment.Spec.Strategy.RollingUpdate.MaxUnavailable = &zero
-
-		for i := range deployment.Spec.Template.Spec.Containers {
-			deployment.Spec.Template.Spec.Containers[i].Env = append(deployment.Spec.Template.Spec.Containers[i].Env,
-				corev1.EnvVar{
-					Name:  "AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME",
-					Value: akkaCluster.Name,
-				},
-				// TODO CONTACT_PT_NR
-			)
-		}
-
-		if err := controllerutil.SetControllerReference(akkaCluster, deployment, r.scheme); err != nil {
-			return reconcile.Result{}, err
-		}
-		return createResource(deployment)
 	}
 
 	// set cluster status
 	pods := &corev1.PodList{}
-	labelSelector := labels.SelectorFromSet(deployment.Spec.Selector.MatchLabels)
+	labelSelector := labels.SelectorFromSet(akkaCluster.Spec.Selector.MatchLabels)
 	listOps := &client.ListOptions{Namespace: akkaCluster.Namespace, LabelSelector: labelSelector}
 	err = r.client.List(context.TODO(), listOps, pods)
 	if err != nil {
