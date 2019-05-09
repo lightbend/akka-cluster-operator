@@ -6,8 +6,8 @@ metadata:
   namespace: space
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ""
+  kind: Role
   name: akka-cluster-demo
 subjects:
-- kind: ""
+- kind: ServiceAccount
   name: akka-cluster-demo

@@ -48,12 +48,12 @@ func generateResources(akkaCluster *appv1alpha1.AkkaCluster) []GenericResource {
 		roleBinding.Namespace = akkaCluster.Namespace
 		roleBinding.RoleRef = rbac.RoleRef{
 			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     role.Kind,
+			Kind:     "Role",
 			Name:     role.Name,
 		}
 		roleBinding.Subjects = []rbac.Subject{
 			{
-				Kind: serviceAccount.Kind,
+				Kind: "ServiceAccount",
 				Name: serviceAccount.Name,
 			},
 		}
