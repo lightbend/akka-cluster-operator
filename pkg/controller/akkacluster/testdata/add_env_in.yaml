@@ -1,0 +1,29 @@
+apiVersion: app.lightbend.com/v1alpha1
+kind: AkkaCluster
+metadata:
+  name: akka-cluster-demo
+  namespace: space
+spec:
+  replicas: 3
+  template:
+    spec:
+      serviceAccountName: existing-account
+      containers:
+        - name: main
+          image: akka-cluster-demo:1.0.2
+          imagePullPolicy: Never
+          env:
+            - name: existing
+              value: env-settings
+            - name: service-name
+              value: fubar
+          livenessProbe:
+            tcpSocket:
+              port: 8558
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: remoting
+              containerPort: 2552
+            - name: management
+              containerPort: 8558

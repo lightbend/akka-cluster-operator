@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  name: akka-cluster-demo
+  namespace: space
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: akka-cluster-demo
+subjects:
+- kind: ServiceAccount
+  name: akka-cluster-demo
