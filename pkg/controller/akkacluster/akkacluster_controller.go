@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"time"
 
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
@@ -52,14 +52,30 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to secondary resources and requeue the owner AkkaCluster
-	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
+	// Watch for changes to all possible secondary resources
+	for _, obj := range allPossibleGeneratedResourceTypes() {
+		err = c.Watch(&source.Kind{Type: obj}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &appv1alpha1.AkkaCluster{},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// watch for pod events to trigger status updates
+	c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+		IsController: false,
 		OwnerType:    &appv1alpha1.AkkaCluster{},
 	})
 	if err != nil {
 		return err
 	}
+
+	// debug watchers (this could be redone as debug predicates)
+	// c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &enqueueDebugger{})
+	// c.Watch(&source.Kind{Type: &corev1.Pod{}}, &enqueueDebugger{})
+	// c.Watch(&source.Kind{Type: &appv1alpha1.AkkaCluster{}}, &enqueueDebugger{})
 
 	return nil
 }
@@ -97,23 +113,33 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 		return reconcile.Result{}, err
 	}
 
-	// Below are some default installer steps, meaning it'll set things up and that's it.
-	// TODO: handle lifecycle changes like updates to spec and scale which need to propagate to deployment.
-	// TODO: handle akka cluster status updates.
-
-	// generateResources populates akkaCluster with defaults and returns list of resources to check
-	for _, resource := range generateResources(akkaCluster) {
-		err = r.client.Get(context.TODO(), request.NamespacedName, resource)
+	// generateResources populates akkaCluster with defaults and returns list of resources to check.
+	for _, wantedResource := range generateResources(akkaCluster) {
+		kind := reflect.ValueOf(wantedResource).Elem().Type().String()
+		// Fetch this resource from cluster, if any.
+		clusterResource := wantedResource.DeepCopyObject()
+		err = r.client.Get(context.TODO(), request.NamespacedName, clusterResource)
 		if err != nil && errors.IsNotFound(err) {
-			if err := controllerutil.SetControllerReference(akkaCluster, resource, r.scheme); err != nil {
+			// Create wanted resource.
+			if err := controllerutil.SetControllerReference(akkaCluster, wantedResource, r.scheme); err != nil {
 				return reconcile.Result{}, err
 			}
-			if err := r.client.Create(context.TODO(), resource); err != nil {
-				reqLogger.Info("Tried to create a new resource", "kind", reflect.TypeOf(resource), "error", err)
+			if err := r.client.Create(context.TODO(), wantedResource); err != nil {
+				reqLogger.Info("Tried to create a new resource", "kind", kind, "error", err)
 				return reconcile.Result{}, err
 			}
-			reqLogger.Info("Creating resource", "kind", reflect.TypeOf(resource))
+			reqLogger.Info("Creating resource", "kind", kind)
 			return reconcile.Result{Requeue: true}, nil
+		}
+		// Update cluster resource to wanted resource, if needed.
+		if !SubsetEqual(wantedResource, clusterResource) {
+			reqLogger.Info("update needed", "kind", kind, "match")
+
+			if err := r.client.Update(context.TODO(), wantedResource); err != nil {
+				reqLogger.Info("Tried to update resource", "kind", kind, "error", err)
+				return reconcile.Result{}, err
+			}
+			return reconcile.Result{}, nil
 		}
 	}
 
@@ -123,8 +149,8 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 	listOps := &client.ListOptions{Namespace: akkaCluster.Namespace, LabelSelector: labelSelector}
 	err = r.client.List(context.TODO(), listOps, pods)
 	if err != nil {
-		reqLogger.Info("error fetching pods", "err", err)
-		return reconcile.Result{Requeue: true}, fmt.Errorf("failed to get pods: %v", err)
+		reqLogger.Info("requeing to list pods", "err", err)
+		return reconcile.Result{RequeueAfter: 3 * time.Second, Requeue: true}, nil
 	}
 
 	findManagementPort := func(pod corev1.Pod) int32 {
@@ -139,6 +165,7 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 	}
 
 	currentStatus := appv1alpha1.AkkaClusterStatus{}
+	// todo: re-use leader if that's known
 	for _, pod := range pods.Items {
 		ip := pod.Status.PodIP
 		port := findManagementPort(pod)
@@ -150,22 +177,26 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 		if err == nil {
 			body, err := ioutil.ReadAll(resp.Body)
 			resp.Body.Close()
-			if err == nil && json.Unmarshal(body, &currentStatus) == nil {
+			if err == nil && json.Unmarshal(body, &currentStatus) == nil && currentStatus.Leader != "" {
 				// managed to read in someone's cluster status, otherwise keep searching
-				reqLogger.Info("found cluster status")
 				break
 			}
-		} else {
-			reqLogger.Info("error fetching cluster/members", "err", err)
 		}
+
+		reqLogger.Info("requeue for status update")
+		return reconcile.Result{RequeueAfter: 3 * time.Second, Requeue: true}, nil
 	}
 	if !reflect.DeepEqual(akkaCluster.Status, currentStatus) {
-		reqLogger.Info("set cluster status")
+		reqLogger.Info("API update cluster status")
 		akkaCluster.Status = currentStatus
 		err := r.client.Status().Update(context.TODO(), akkaCluster)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
+		// poll again for lagging updates
+		// TODO: maybe refresh with backoff up to a minute
+		return reconcile.Result{RequeueAfter: 5 * time.Second, Requeue: true}, nil
 	}
+
 	return reconcile.Result{}, nil
 }

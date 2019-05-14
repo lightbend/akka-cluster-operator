@@ -18,8 +18,21 @@ type GenericResource interface {
 	runtime.Object
 }
 
-// generateResources() produces a list of rbac and deployment resources suitable for akkaCluster.
-// If akkaCluster resource does not specify needed options, we provide defaults.
+// allGeneratedResourceTypes returns list of GenericResources that might be generated in future.
+// This allows the controller to get a list of secondary resource types to watch.
+func allPossibleGeneratedResourceTypes() []GenericResource {
+	return []GenericResource{
+		&appsv1.Deployment{},
+		&rbac.RoleBinding{},
+		&rbac.Role{},
+		&corev1.ServiceAccount{},
+	}
+}
+
+// generateResources produces a list of rbac and deployment resources suitable for akkaCluster.
+// If akkaCluster resource does not specify needed options, we provide defaults. Note that these
+// objects are used as a subset reference for testing cluster object correctness, so be careful
+// not to fill in ephemeral fields here like timestamps, uuids. Return the expected reference objects.
 func generateResources(akkaCluster *appv1alpha1.AkkaCluster) []GenericResource {
 	resources := []GenericResource{}
 
