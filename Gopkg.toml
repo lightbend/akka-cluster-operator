@@ -81,3 +81,7 @@ required = [
 [[constraint]]
   name = "github.com/google/go-cmp"
   version = "0.3.0"
+
+[[constraint]]
+  name = "github.com/evanphx/json-patch"
+  version = "4.2.0"

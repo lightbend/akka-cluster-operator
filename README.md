@@ -40,3 +40,15 @@ kubectl apply -f ./deploy
 ## demo application
 
 https://github.com/dbrinegar/akka-java-cluster-openshift
+
+## hacking
+
+* install operator-sdk
+* start minikube
+* install the CRD
+* route pod network to macbook so operator can query akka management endpoints `sudo route -n add 172.17.0.0/16 $(minikube ip)`
+
+then loop on:
+* `operator-sdk up local`
+
+and a demo app
