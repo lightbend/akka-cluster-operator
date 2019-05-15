@@ -12,10 +12,9 @@ import (
 // AkkaClusterMemberStatus corresponds to Akka Management members entries
 // ref https://github.com/akka/akka-management/blob/master/cluster-http/src/main/scala/akka/management/cluster/ClusterHttpManagementProtocol.scala
 type AkkaClusterMemberStatus struct {
-	Node    string   `json:"node"`
-	NodeUID string   `json:"nodeUid"`
-	Status  string   `json:"status"`
-	Roles   []string `json:"roles"`
+	Node   string   `json:"node"`
+	Status string   `json:"status"`
+	Roles  []string `json:"roles"`
 }
 
 // AkkaClusterUnreachableMemberStatus reports node(s) to node reachability problems
