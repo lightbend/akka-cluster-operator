@@ -115,15 +115,16 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 
 	// generateResources populates akkaCluster with defaults and returns list of resources to check.
 	for _, wantedResource := range generateResources(akkaCluster) {
+		if err := controllerutil.SetControllerReference(akkaCluster, wantedResource, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
 		kind := reflect.ValueOf(wantedResource).Elem().Type().String()
 		// Fetch this resource from cluster, if any.
 		clusterResource := wantedResource.DeepCopyObject()
 		err = r.client.Get(context.TODO(), request.NamespacedName, clusterResource)
 		if err != nil && errors.IsNotFound(err) {
-			// Create wanted resource.
-			if err := controllerutil.SetControllerReference(akkaCluster, wantedResource, r.scheme); err != nil {
-				return reconcile.Result{}, err
-			}
+			// Create wanted resource. Next client.Get will at least fetch wantedResource and will eventually
+			// reflect the object as it is in the cluster.
 			if err := r.client.Create(context.TODO(), wantedResource); err != nil {
 				reqLogger.Info("Tried to create a new resource", "kind", kind, "error", err)
 				return reconcile.Result{}, err
@@ -133,13 +134,13 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 		}
 		// Update cluster resource to wanted resource, if needed.
 		if !SubsetEqual(wantedResource, clusterResource) {
-			reqLogger.Info("update needed", "kind", kind, "match")
+			reqLogger.Info("applying update", "kind", kind, "match")
 
 			if err := r.client.Update(context.TODO(), wantedResource); err != nil {
 				reqLogger.Info("Tried to update resource", "kind", kind, "error", err)
 				return reconcile.Result{}, err
 			}
-			return reconcile.Result{}, nil
+			return reconcile.Result{Requeue: true}, nil
 		}
 	}
 
@@ -149,7 +150,7 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 	listOps := &client.ListOptions{Namespace: akkaCluster.Namespace, LabelSelector: labelSelector}
 	err = r.client.List(context.TODO(), listOps, pods)
 	if err != nil {
-		reqLogger.Info("requeing to list pods", "err", err)
+		reqLogger.Info("requeueing to list pods", "err", err)
 		return reconcile.Result{RequeueAfter: 3 * time.Second, Requeue: true}, nil
 	}
 
