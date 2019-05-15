@@ -20,13 +20,6 @@ import (
 // The algorithm here is similar to reflect.DeepCopy, in that we use reflection to walk
 // a potentially recursive tree. For comparison, we ignore empty or zero value fields in A.
 func SubsetEqual(subset, superset interface{}) bool {
-	if subset == nil {
-		return true
-	}
-	if subset != nil && superset == nil {
-		return false
-	}
-
 	t := newTreeWalk()
 	return t.subsetValueEqual(reflect.ValueOf(subset), reflect.ValueOf(superset))
 }
