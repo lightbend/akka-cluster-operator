@@ -39,9 +39,3 @@ spec:
           name: management
         resources: {}
       serviceAccountName: akka-cluster-demo
-status:
-  leader: ""
-  members: null
-  oldest: ""
-  oldestPerRole: null
-  unreachable: null

@@ -37,9 +37,3 @@ spec:
           name: management
         resources: {}
       serviceAccountName: existing-account
-status:
-  leader: ""
-  members: null
-  oldest: ""
-  oldestPerRole: null
-  unreachable: null
