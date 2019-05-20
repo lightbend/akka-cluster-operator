@@ -33,7 +33,7 @@ func Add(mgr manager.Manager) error {
 		client:      apiClient,
 		scheme:      mgr.GetScheme(),
 		events:      statusEvents,
-		statusActor: NewStatusActor(statusEvents, apiClient),
+		statusActor: NewStatusActor(apiClient, statusEvents),
 	}
 
 	// Create a new controller
