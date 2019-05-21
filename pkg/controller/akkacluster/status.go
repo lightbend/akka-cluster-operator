@@ -50,6 +50,54 @@ import (
 // a replacement for polling. https://github.com/akka/akka-management/issues/540
 //
 
+// Given a URL, return the body of the response.
+type urlReader interface {
+	ReadURL(string) ([]byte, error)
+}
+
+// An httpReader is a urlReader with http.Client.
+type httpReader struct {
+	http.Client
+}
+
+func newHTTPReader() *httpReader {
+	return &httpReader{
+		http.Client{Timeout: 3 * time.Second},
+	}
+}
+
+func (r *httpReader) ReadURL(url string) ([]byte, error) {
+	resp, err := r.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	return body, err
+}
+
+// Given an AkkaCluster, return a list of pods.
+type podLister interface {
+	ListPods(*appv1alpha1.AkkaCluster) *corev1.PodList
+}
+
+// controllerPodLister is a podLister with a controller client
+type controllerPodLister struct {
+	client.Client
+}
+
+func (p *controllerPodLister) ListPods(cluster *appv1alpha1.AkkaCluster) *corev1.PodList {
+	pods := &corev1.PodList{}
+	listOps := &client.ListOptions{
+		Namespace:     cluster.Namespace,
+		LabelSelector: labels.SelectorFromSet(cluster.Spec.Selector.MatchLabels),
+	}
+	p.List(context.TODO(), listOps, pods)
+	return pods
+}
+
+//func (p *controllerPodLister) {
+
 // StatusActor manages updating status for a set of Akka clusters. It is a worker for a
 // controller, responsible mainly for converting Akka cluster events into controller
 // reconciliation events. It also provides cluster status to the controller.
@@ -58,8 +106,8 @@ type StatusActor struct {
 	inbox chan func()
 	// outbound:
 	statusChanged chan event.GenericEvent
-	client        client.Client
-	http          http.Client
+	lister        podLister
+	reader        urlReader
 	// state:
 	minimalWait time.Duration
 	polls       map[reconcile.Request]pollingRequest
@@ -77,8 +125,8 @@ func NewStatusActor(client client.Client, statusChanged chan event.GenericEvent)
 	actor := &StatusActor{
 		inbox:         make(chan func(), 100),
 		statusChanged: statusChanged,
-		client:        client,
-		http:          http.Client{Timeout: 3 * time.Second},
+		lister:        &controllerPodLister{client},
+		reader:        newHTTPReader(),
 		minimalWait:   time.Second,
 		polls:         make(map[reconcile.Request]pollingRequest),
 	}
@@ -260,17 +308,12 @@ func (a *StatusActor) fetchUpdate(cluster *appv1alpha1.AkkaCluster) *appv1alpha1
 		cluster.Status.ManagementHost,
 		cluster.Status.ManagementPort)
 	log.Info("fetching status", "name", cluster.Namespace+"/"+cluster.Name, "url", link)
-	resp, err := a.http.Get(link)
+	body, err := a.reader.ReadURL(link)
 	if err != nil {
-		log.Info("StatusActor fetch", "err", err)
+		log.Info("StatusActor could not read endpoint", "err", err)
 		return nil
 	}
 	currentStatus := cluster.Status.DeepCopy()
-	body, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return nil
-	}
 	err = json.Unmarshal(body, &currentStatus.Cluster)
 	if err != nil {
 		return nil
@@ -295,12 +338,7 @@ func findManagementPort(pod *corev1.Pod) int32 {
 // against a running pod without a working management endpoint.
 func (a *StatusActor) findRunningPod(cluster *appv1alpha1.AkkaCluster) *v1.Pod {
 	log.Info("fetching pods", "name", cluster.Namespace+"/"+cluster.Name)
-	pods := &corev1.PodList{}
-	listOps := &client.ListOptions{
-		Namespace:     cluster.Namespace,
-		LabelSelector: labels.SelectorFromSet(cluster.Spec.Selector.MatchLabels),
-	}
-	a.client.List(context.TODO(), listOps, pods)
+	pods := a.lister.ListPods(cluster)
 	for n := range rand.Perm(len(pods.Items)) {
 		pod := &pods.Items[n]
 		if pod.Status.PodIP != "" && pod.DeletionTimestamp == nil && pod.Status.Phase == corev1.PodRunning {
