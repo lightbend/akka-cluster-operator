@@ -13,7 +13,6 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
@@ -95,8 +94,6 @@ func (p *controllerPodLister) ListPods(cluster *appv1alpha1.AkkaCluster) *corev1
 	p.List(context.TODO(), listOps, pods)
 	return pods
 }
-
-//func (p *controllerPodLister) {
 
 // StatusActor manages updating status for a set of Akka clusters. It is a worker for a
 // controller, responsible mainly for converting Akka cluster events into controller
@@ -336,7 +333,7 @@ func findManagementPort(pod *corev1.Pod) int32 {
 // filtering on those that have an IP, are not marked for deletion, and currently running.
 // This function also shuffles the list of pods to better avoid getting stuck in a loop
 // against a running pod without a working management endpoint.
-func (a *StatusActor) findRunningPod(cluster *appv1alpha1.AkkaCluster) *v1.Pod {
+func (a *StatusActor) findRunningPod(cluster *appv1alpha1.AkkaCluster) *corev1.Pod {
 	log.Info("fetching pods", "name", cluster.Namespace+"/"+cluster.Name)
 	pods := a.lister.ListPods(cluster)
 	for n := range rand.Perm(len(pods.Items)) {
