@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/url"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -98,7 +99,7 @@ func generateMember(ip string) *testMemberStatus {
 
 func generateManagementResult(ips []string) *testManagementStatus {
 	status := &testManagementStatus{}
-	leader := len(ips) - 1 // rand.Intn(len(ips))
+	leader := rand.Intn(len(ips))
 	oldest := rand.Intn(len(ips))
 	status.Leader = generateNodeAddress(ips[leader])
 	status.Oldest = generateNodeAddress(ips[oldest])
@@ -114,11 +115,23 @@ func generateManagementResult(ips []string) *testManagementStatus {
 
 // testReader is a urlReader and podLister mock
 type testReaderLister struct {
-	ips []string
+	ips    []string
+	status *testManagementStatus
+	pods   []corev1.Pod
+}
+
+func newCluster(ips ...string) *testReaderLister {
+	r := &testReaderLister{}
+	r.ips = ips
+	r.status = generateManagementResult(r.ips)
+	for n := range r.ips {
+		r.pods = append(r.pods, *generatePod(r.ips[n]))
+	}
+	return r
 }
 
 func (r *testReaderLister) ReadURL(uri string) ([]byte, error) {
-	status := generateManagementResult(r.ips)
+	status := r.status
 	link, _ := url.Parse(uri)
 	status.SelfNode = generateNodeAddress(link.Hostname())
 	return json.Marshal(status)
@@ -126,24 +139,21 @@ func (r *testReaderLister) ReadURL(uri string) ([]byte, error) {
 
 func (r *testReaderLister) ListPods(cluster *appv1alpha1.AkkaCluster) *corev1.PodList {
 	list := &corev1.PodList{}
-	list.Items = []corev1.Pod{}
-	for n := range r.ips {
-		list.Items = append(list.Items, *generatePod(r.ips[n]))
-	}
+	list.Items = r.pods
 	return list
 }
 
 func TestStatusActor(t *testing.T) {
-	statusChanged := make(chan event.GenericEvent)
+	statusChanged := make(chan event.GenericEvent, 10)
 	ips := []string{"10.0.0.1", "10.0.0.2", "10.0.0.3"}
-	mock := &testReaderLister{ips}
+	mock := newCluster(ips...)
 
 	actor := &StatusActor{
 		inbox:         make(chan func(), 100),
 		statusChanged: statusChanged,
 		lister:        mock,
 		reader:        mock,
-		minimalWait:   time.Millisecond,
+		minimalWait:   time.Nanosecond,
 		polls:         make(map[reconcile.Request]pollingRequest),
 	}
 	go actor.Run()
@@ -151,14 +161,20 @@ func TestStatusActor(t *testing.T) {
 	cluster := &appv1alpha1.AkkaCluster{}
 	cluster.Name = "boop"
 	cluster.Namespace = "bop"
+	status := actor.GetStatus(getReq(cluster))
+	if status != nil {
+		t.Errorf("expected unknown status to be nil, but got %+v", status)
+	}
+
 	actor.StartPolling(cluster)
 	<-statusChanged
-	status := actor.GetStatus(getReq(cluster))
+	status = actor.GetStatus(getReq(cluster))
 	if len(status.Cluster.Members) != len(mock.ips) {
 		t.Errorf("expected %d cluster members but got %d", len(mock.ips), len(status.Cluster.Members))
 	}
 
 	cluster.Status = status
+	cluster.Status.Cluster.Oldest = "somethingChanged"
 	actor.StartPolling(cluster)
 	<-statusChanged
 	status = actor.GetStatus(getReq(cluster))
@@ -166,4 +182,54 @@ func TestStatusActor(t *testing.T) {
 		t.Errorf("expected management host to converge on leader, but got %s", status.ManagementHost)
 	}
 
+	cluster.Status = status
+	actor.minimalWait = time.Second
+	// this should start long polling and not find anything
+	actor.StartPolling(cluster)
+	// this should interrupt it and start over
+	actor.StartPolling(cluster)
+	// this should interrupt it and find something
+	cluster.Status.Cluster.Oldest = "somethingChanged"
+	actor.minimalWait = time.Nanosecond
+	actor.StartPolling(cluster)
+	<-statusChanged
+	status = actor.GetStatus(getReq(cluster))
+	if !reflect.DeepEqual(status.Cluster.Members, cluster.Status.Cluster.Members) {
+		t.Errorf("expected same status, got %#v", status)
+	}
+	// now we will finish long polling without finding anything
+	// the actor will only clear state in the case that it gives up
+	cluster.Status = status
+	done := make(chan (bool))
+	busyWaitPoll := func() {
+		for len(actor.polls) != 0 {
+			time.Sleep(time.Millisecond)
+		}
+		done <- true
+	}
+	go busyWaitPoll()
+	// start polling, give up, clear state
+	actor.StartPolling(cluster)
+
+	select {
+	case <-statusChanged:
+		t.Errorf("expected no status updates")
+	case <-done:
+	}
+
+	if len(actor.polls) != 0 {
+		t.Errorf("expected all polling to be abandoned, but still have %#v", actor.polls)
+	}
+
+	cluster.Status.Cluster.Oldest = "somethingChanged"
+	actor.StartPolling(cluster)
+	<-statusChanged
+	if len(actor.polls) != 1 {
+		t.Errorf("expected one polling result, but got %#v", actor.polls)
+	}
+	actor.StopPolling(getReq(cluster))
+	actor.GetStatus(getReq(cluster)) // using an Ask() here to wait for above to finish :-|
+	if len(actor.polls) != 0 {
+		t.Errorf("expected polling to be cleared, but got %#v", actor.polls)
+	}
 }
