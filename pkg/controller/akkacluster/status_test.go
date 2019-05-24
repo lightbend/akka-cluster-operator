@@ -201,8 +201,15 @@ func TestStatusActor(t *testing.T) {
 	// the actor will only clear state in the case that it gives up
 	cluster.Status = status
 	done := make(chan (bool))
+	pollCount := func() int {
+		count := make(chan int)
+		actor.inbox <- func() {
+			count <- len(actor.polls)
+		}
+		return <-count
+	}
 	busyWaitPoll := func() {
-		for len(actor.polls) != 0 {
+		for pollCount() != 0 {
 			time.Sleep(time.Millisecond)
 		}
 		done <- true
@@ -217,19 +224,19 @@ func TestStatusActor(t *testing.T) {
 	case <-done:
 	}
 
-	if len(actor.polls) != 0 {
+	if pollCount() != 0 {
 		t.Errorf("expected all polling to be abandoned, but still have %#v", actor.polls)
 	}
 
 	cluster.Status.Cluster.Oldest = "somethingChanged"
 	actor.StartPolling(cluster)
 	<-statusChanged
-	if len(actor.polls) != 1 {
+	if pollCount() != 1 {
 		t.Errorf("expected one polling result, but got %#v", actor.polls)
 	}
 	actor.StopPolling(getReq(cluster))
 	actor.GetStatus(getReq(cluster)) // using an Ask() here to wait for above to finish :-|
-	if len(actor.polls) != 0 {
+	if pollCount() != 0 {
 		t.Errorf("expected polling to be cleared, but got %#v", actor.polls)
 	}
 }
