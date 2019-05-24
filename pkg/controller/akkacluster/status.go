@@ -111,9 +111,9 @@ type StatusActor struct {
 }
 
 type pollingRequest struct {
-	cluster *appv1alpha1.AkkaCluster
-	wait    time.Duration
-	timer   *time.Timer
+	cluster    *appv1alpha1.AkkaCluster
+	waitFactor int
+	timer      *time.Timer
 }
 
 // NewStatusActor constructs a new StatusActor given a Manager's api client and some
@@ -175,7 +175,6 @@ func (a *StatusActor) StartPolling(cluster *appv1alpha1.AkkaCluster) {
 		}
 		msg := pollingRequest{
 			cluster: copy,
-			wait:    a.minimalWait,
 		}
 		if !immediateMode {
 			// restart previous poll after minimalWait
@@ -249,15 +248,18 @@ func (a *StatusActor) update(req reconcile.Request) {
 			return
 		}
 		// poll again, up to some limit
-		poll.wait *= 2
-		if poll.wait.Seconds() > 60. {
+		if poll.waitFactor == 0 {
+			poll.waitFactor = 1
+		}
+		poll.waitFactor *= 2
+		if poll.waitFactor > 60 {
 			// State is stored in the AkkaCluster object, so we can be parsimonious here.
 			// A new update request will pick up where it left off with previous host and
 			// port etc since those are in the request object at this point.
 			delete(a.polls, req)
 			return
 		}
-		poll.timer = time.AfterFunc(poll.wait, func() { a.update(req) })
+		poll.timer = time.AfterFunc(a.minimalWait*time.Duration(poll.waitFactor), func() { a.update(req) })
 		a.polls[req] = poll
 	}
 }
