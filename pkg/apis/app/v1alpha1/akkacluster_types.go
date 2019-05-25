@@ -12,16 +12,24 @@ import (
 // AkkaClusterMemberStatus corresponds to Akka Management members entries
 // ref https://github.com/akka/akka-management/blob/master/cluster-http/src/main/scala/akka/management/cluster/ClusterHttpManagementProtocol.scala
 type AkkaClusterMemberStatus struct {
-	Node    string   `json:"node"`
-	NodeUID string   `json:"nodeUid"`
-	Status  string   `json:"status"`
-	Roles   []string `json:"roles"`
+	Node   string   `json:"node"`
+	Status string   `json:"status"`
+	Roles  []string `json:"roles"`
 }
 
 // AkkaClusterUnreachableMemberStatus reports node(s) to node reachability problems
 type AkkaClusterUnreachableMemberStatus struct {
 	Node       string   `json:"node"`
 	ObservedBy []string `json:"observedBy"`
+}
+
+// AkkaClusterManagementStatus reflects the Akka Management endpoint
+type AkkaClusterManagementStatus struct {
+	Members       []AkkaClusterMemberStatus            `json:"members"`
+	Unreachable   []AkkaClusterUnreachableMemberStatus `json:"unreachable"`
+	Leader        string                               `json:"leader"`
+	Oldest        string                               `json:"oldest"`
+	OldestPerRole map[string]string                    `json:"oldestPerRole"`
 }
 
 // AkkaClusterSpec defines the desired state of AkkaCluster
@@ -33,13 +41,10 @@ type AkkaClusterSpec struct {
 // AkkaClusterStatus defines the observed state of AkkaCluster
 // +k8s:openapi-gen=true
 type AkkaClusterStatus struct {
-	apps.DeploymentStatus `json:",inline"`
-
-	Members       []AkkaClusterMemberStatus            `json:"members"`
-	Unreachable   []AkkaClusterUnreachableMemberStatus `json:"unreachable"`
-	Leader        string                               `json:"leader"`
-	Oldest        string                               `json:"oldest"`
-	OldestPerRole map[string]string                    `json:"oldestPerRole"`
+	ManagementHost string                      `json:"managementHost"`
+	ManagementPort int32                       `json:"managementPort"`
+	LastUpdate     metav1.Time                 `json:"lastUpdate"`
+	Cluster        AkkaClusterManagementStatus `json:"cluster"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -51,7 +56,7 @@ type AkkaCluster struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   apps.DeploymentSpec `json:"spec,omitempty"`
-	Status AkkaClusterStatus   `json:"status,omitempty"`
+	Status *AkkaClusterStatus  `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -2,20 +2,16 @@ package akkacluster
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"reflect"
-	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -27,19 +23,19 @@ import (
 
 var log = logf.Log.WithName("controller_akkacluster")
 
-// Add creates a new AkkaCluster Controller and adds it to the Manager. The Manager will set fields on the Controller
-// and Start it when the Manager is Started.
+// Add creates a new AkkaCluster Controller and adds it to the Manager. The Manager will
+// set fields on the Controller and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
-}
+	statusEvents := make(chan event.GenericEvent, 1024)
+	apiClient := mgr.GetClient()
 
-// newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileAkkaCluster{client: mgr.GetClient(), scheme: mgr.GetScheme()}
-}
+	r := &ReconcileAkkaCluster{
+		client:      apiClient,
+		scheme:      mgr.GetScheme(),
+		events:      statusEvents,
+		statusActor: NewStatusActor(apiClient, statusEvents),
+	}
 
-// add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("akkacluster-controller", mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -63,7 +59,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		}
 	}
 
+	// watch for Akka Cluster status updates
+	err = c.Watch(&source.Channel{Source: r.events}, &handler.EnqueueRequestForObject{})
+	if err != nil {
+		return err
+	}
+
 	// watch for pod events to trigger status updates
+	// TODO: is this needed or are these percolating up to Deployment well enough?
+	// need to test with and without readiness, as they may be equivalent only with readiness
 	c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: false,
 		OwnerType:    &appv1alpha1.AkkaCluster{},
@@ -86,8 +90,10 @@ var _ reconcile.Reconciler = &ReconcileAkkaCluster{}
 type ReconcileAkkaCluster struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
+	client      client.Client
+	scheme      *runtime.Scheme
+	events      chan event.GenericEvent
+	statusActor *StatusActor
 }
 
 // Reconcile reads that state of the cluster for a AkkaCluster object and makes changes based on the state read
@@ -107,6 +113,7 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
+			r.statusActor.StopPolling(request)
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -144,59 +151,25 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 		}
 	}
 
-	// set cluster status
-	pods := &corev1.PodList{}
-	labelSelector := labels.SelectorFromSet(akkaCluster.Spec.Selector.MatchLabels)
-	listOps := &client.ListOptions{Namespace: akkaCluster.Namespace, LabelSelector: labelSelector}
-	err = r.client.List(context.TODO(), listOps, pods)
-	if err != nil {
-		reqLogger.Info("requeueing to list pods", "err", err)
-		return reconcile.Result{RequeueAfter: 3 * time.Second, Requeue: true}, nil
-	}
-
-	findManagementPort := func(pod corev1.Pod) int32 {
-		for _, container := range pod.Spec.Containers {
-			for _, port := range container.Ports {
-				if port.Name == "management" {
-					return port.ContainerPort
+	if r.statusActor != nil {
+		currentStatus := r.statusActor.GetStatus(request)
+		if nil != currentStatus {
+			if !reflect.DeepEqual(akkaCluster.Status, currentStatus) {
+				akkaCluster.Status = currentStatus
+				err := r.client.Status().Update(context.TODO(), akkaCluster)
+				if err != nil {
+					reqLogger.Info("update error", "err", err)
+					return reconcile.Result{}, err
 				}
+				reqLogger.Info("updated cluster status")
 			}
 		}
-		return 8558
-	}
-
-	currentStatus := appv1alpha1.AkkaClusterStatus{}
-	// todo: re-use leader if that's known
-	for _, pod := range pods.Items {
-		ip := pod.Status.PodIP
-		port := findManagementPort(pod)
-		if ip == "" || port == 0 {
-			continue
-		}
-		reqLogger.Info("fetching /cluster/members/", "pod", ip, "port", port)
-		resp, err := http.Get(fmt.Sprintf("http://%s:%d/cluster/members/", ip, port))
-		if err == nil {
-			body, err := ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
-			if err == nil && json.Unmarshal(body, &currentStatus) == nil && currentStatus.Leader != "" {
-				// managed to read in someone's cluster status, otherwise keep searching
-				break
-			}
-		}
-
-		reqLogger.Info("requeue for status update")
-		return reconcile.Result{RequeueAfter: 3 * time.Second, Requeue: true}, nil
-	}
-	if !reflect.DeepEqual(akkaCluster.Status, currentStatus) {
-		reqLogger.Info("API update cluster status")
-		akkaCluster.Status = currentStatus
-		err := r.client.Status().Update(context.TODO(), akkaCluster)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		// poll again for lagging updates
-		// TODO: maybe refresh with backoff up to a minute
-		return reconcile.Result{RequeueAfter: 5 * time.Second, Requeue: true}, nil
+		// StartPolling means: notify me if status for this cluster changes from what I've
+		// got so far. This could happen on the first reconcile, meaning status is unknown
+		// or nil, and we want to be notified when it becomes available. This could also
+		// happen on a reconcile triggered by a status update, in which case we want to
+		// first GetStatus() and update the cluster object, then poll for future change.
+		r.statusActor.StartPolling(akkaCluster)
 	}
 
 	return reconcile.Result{}, nil
