@@ -52,3 +52,4 @@ then loop on:
 * `operator-sdk up local`
 
 and a demo app
+
