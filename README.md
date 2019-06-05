@@ -57,7 +57,120 @@ Then on the Status side, the AkkaCluster status reflects the Akka Management end
 one can use normal kubernetes tools like `kubectl` or `oc` or the cluster UI to look at
 Akka Cluster leader, members, connection problems, etc.
 
-## install the CRD
+## Status
+
+Each AkkaCluster resource has a top level `status` section that shows members
+of the cluster, reachability issues, and role assignments. This content is from the point
+of view of the cluster leader, and reflects content from its [Akka Management
+endpoint](https://doc.akka.io/docs/akka-management/current/cluster-http-management.html).
+The operator polls the leader for updates after every resource event.
+
+Example, from `kubectl get akkaclusters -o yaml`:
+
+```yaml
+- apiVersion: app.lightbend.com/v1alpha1
+  kind: AkkaCluster
+  // omitting metadata: and spec: sections
+  status:
+    cluster:
+      leader: akka.tcp://akka-cluster-openshift@172.17.0.10:2552
+      members:
+      - node: akka.tcp://akka-cluster-openshift@172.17.0.10:2552
+        roles:
+        - dc-default
+        status: Up
+      - node: akka.tcp://akka-cluster-openshift@172.17.0.11:2552
+        roles:
+        - dc-default
+        status: Up
+      - node: akka.tcp://akka-cluster-openshift@172.17.0.12:2552
+        roles:
+        - dc-default
+        status: Joining
+      oldest: akka.tcp://akka-cluster-openshift@172.17.0.10:2552
+      oldestPerRole:
+        dc-default: akka.tcp://akka-cluster-openshift@172.17.0.10:2552
+      unreachable: []
+    lastUpdate: "2019-06-05T22:11:39Z"
+    managementHost: "172.17.0.10"
+    managementPort: 8558
+```
+
+The `managementHost` and port show the source of this cluster status, so in the above
+example the data come from
+
+```sh
+curl http://172.17.0.10:8558/cluster/members/
+```
+
+The `lastUpdate` timestamp shows the last time that status changed. If you want to see
+when the operator last polled for status you can find that in its log.
+
+## Scaling example
+
+To better understand what happens between the Operator and the Cluster, let's look at the
+scenario of scaling an AkkaCluster up by adding a node. Say the existing cluster is
+already running at `replicas: 4`
+
+```yaml
+apiVersion: app.lightbend.com/v1alpha1
+kind: AkkaCluster
+metadata:
+  name: akka-cluster-demo
+spec:
+  replicas: 4
+  template:
+    spec:
+      containers:
+      - name: main
+        image: lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.0.2
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: remoting
+          containerPort: 2552
+        - name: management
+          containerPort: 8558
+```
+
+From that AkkaCluster resource, the Operator has made a Deployment, a ServiceAccount, Role
+and RoleBinding, and has set workable defaults for Akka Management. These defaults include
+
+* `spec.selector` so the ReplicaSet works correctly and on the same selector basis as Akka
+  Bootstrap
+* `spec.strategy` to get one-at-a-time rolling updates with no reduction in capacity
+* `spec.template.metadata.labels.app` set to the unique name of this cluster
+* container environment variable `AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME` set to that same
+  value so Akka Bootstrap works on the same basis as the ReplicaSet
+
+### Scale Up
+
+Now set `replicas: 5`. The Operator will propogate that change down to the Deployment. A
+new pod with the same `template` will start. The Operator will start polling the cluster
+leader for status changes.
+
+![Akka Cluster Scale New Pod](akka-cluster-scale-new-pod.png)
+
+Once the application in the new pod starts, it initiates Akka Bootstrap. By way of the
+ServiceAccount that permits reading pods, it gets a list of pods from Kubernetes. These
+pods have the unique label `app=${AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME}` and are in the
+Running phase, not marked for deletion, to avoid old or soon-to-be-deleted pods. In our
+case it lists the 4 running pods in the cluster and starts gossip connections with them.
+The leader will add the node to the members list and mark it as **Joining** the cluster.
+
+The Operator will update status to show the new node, and keep polling for status changes.
+
+![Akka Cluster Scale Joining](akka-cluster-scale-joining.png)
+
+Presuming all is well and the cluster members can reach the new node, the leader will
+promote it to **Up** and it will start taking cluster work.
+
+The Operator will update status to show the new **Up** node, and from here will likely not
+get further status changes until some future change to pod resources.
+
+![Akka Cluster Scale Up](akka-cluster-scale-up.png)
+
+## Install the CRD
 
 this needs to be done once per cluster
 
@@ -65,7 +178,7 @@ this needs to be done once per cluster
 kubectl apply -f ./deploy/crds/app_v1alpha1_akkacluster_crd.yaml
 ```
 
-## install the controller
+## Install the controller
 
 in each namespace where akkacluster apps are desired
 
@@ -73,11 +186,11 @@ in each namespace where akkacluster apps are desired
 kubectl apply -f ./deploy
 ```
 
-## demo application
+## Demo application
 
 [Akka Cluster visualizer](https://github.com/dbrinegar/akka-java-cluster-openshift)
 
-## hacking
+## Hacking
 
 * install operator-sdk
 * start minikube
