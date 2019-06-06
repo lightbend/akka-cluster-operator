@@ -45,32 +45,104 @@ each application, as well as supervises the Deployment for the application itsel
 By default, the operator will create these sub-resources under each AkkaCluster:
 
 * a ServiceAccount to allow the application to list its own pods. Note that this does
-  _not_ change the default serviceaccount in the namespace, and every AkkaCluster
-  application has its own serviceaccount.
+  _not_ change the default ServiceAccount in the namespace, and every AkkaCluster
+  application has its own ServiceAccount.
 
-* a Role to be a pod-reader, with RoleBinding to connect the serviceaccount to the role
+* a Role to be a pod-reader, with RoleBinding to connect the ServiceAccount to the role
 
 * Deployment per specification, with default ServiceAccount, pod selector, rolling update
   strategy, and AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME environment settings.
 
-Then on the Status side, the AkkaCluster status reflects the Akka Management endpoint, so
-one can use normal kubernetes tools like `kubectl` or `oc` or the cluster UI to look at
-Akka Cluster leader, members, connection problems, etc.
+## Overriding defaults
+
+The operator provides a number of defaults, including a ServiceAccount and Role, as
+well as for selectors, upgrade strategy settings, labels, and environment variables.
+These defaults are meant to align with common case needs and defaults in Akka Management,
+and are meant to be easily reviewed by inspecting the generated Deployment for your
+application.
+
+For example, an AkkaCluster might generate this Deployment, with all the defaults
+laid out for easy review:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: akka-cluster-demo
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: akka-cluster-demo
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: akka-cluster-demo
+    spec:
+      containers:
+      - env:
+        - name: AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME
+          value: akka-cluster-demo
+        image: akka-cluster-demo:1.0.2
+        # ...
+      serviceAccountName: akka-cluster-demo
+```
+
+If you would like to use your own ServiceAccount, for example, you would set the
+`serviceAccountName` field in the AkkaCluster template spec to your preferred value:
+
+```yaml
+apiVersion: app.lightbend.com/v1alpha1
+kind: AkkaCluster
+metadata:
+  name: akka-cluster-demo
+spec:
+  replicas: 4
+  template:
+    spec:
+      serviceAccountName: my-custom-service-account
+      containers:
+      # - ...
+```
+
+The operator will notice that you have specified a value and will not create the default
+ServiceAccount, Role or RoleBinding, leaving the creation and maintenance of those
+resources alone.
+
+Note that in contrast the default ServiceAccount and Role resources are
+created and marked "owned-by" the AkkaCluster resource, so that Kubernetes cleans them up
+as a group. If you delete the AkkaCluster, the default sub-resources under it are all
+cleaned up automatically. But if you specify your own ServiceAccount, the operator will
+not bind it to the AkkaCluster. It will be referenced as you specify, but otherwise left
+alone, meaning your custom resources must be created and deleted independent of the
+application.
+
+Similarly if you want different selector, strategy, labels, or any override of a default,
+you can specify your preferred values in the AkkaCluster spec. The operator will only
+provide defaults for unspecified fields, and will not override your preferences. The
+operator does not look into your `application.conf` either, so you must make sure you are
+applying environmental configuration consistently where you do not use the defaults.
 
 ## Status
 
-Each AkkaCluster resource has a top level `status` section that shows members
-of the cluster, reachability issues, and role assignments. This content is from the point
-of view of the cluster leader, and reflects content from its [Akka Management
-endpoint](https://doc.akka.io/docs/akka-management/current/cluster-http-management.html).
-The operator polls the leader for updates after every resource event.
+Each AkkaCluster resource has a top level `status` section that shows members of the
+cluster, reachability issues, and role assignments. This content is from the point of view
+of the cluster leader, and reflects content from its [Akka Management
+endpoint](https://doc.akka.io/docs/akka-management/current/cluster-http-management.html)
+which is located via a named `management` port in the application pod. The operator polls
+the leader for updates after every resource event.
 
 Example, from `kubectl get akkaclusters -o yaml`:
 
 ```yaml
 - apiVersion: app.lightbend.com/v1alpha1
   kind: AkkaCluster
-  // omitting metadata: and spec: sections
+  # omitting metadata: and spec: sections
   status:
     cluster:
       leader: akka.tcp://akka-cluster-openshift@172.17.0.10:2552
@@ -145,7 +217,7 @@ and RoleBinding, and has set workable defaults for Akka Management. These defaul
 
 ### Scale Up
 
-Now set `replicas: 5`. The Operator will propogate that change down to the Deployment. A
+Now set `replicas: 5`. The Operator will propagate that change down to the Deployment. A
 new pod with the same `template` will start. The Operator will start polling the cluster
 leader for status changes.
 
