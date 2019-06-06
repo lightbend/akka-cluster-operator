@@ -242,23 +242,71 @@ get further status changes until some future change to pod resources.
 
 ![Akka Cluster Scale Up](akka-cluster-scale-up.png)
 
-## Install the CRD
+## Install the AkkaCluster Custom Resource Definition (CRD)
 
-this needs to be done once per cluster
+For Kubernetes to understand AkkaCluster resources, each cluster must have the CRD
+installed. This yaml specifies the schema of an AkkaCluster resource, and registers it in
+the API layer so that `kubectl` and controllers and other API clients can interact with
+AkkaCluster resources just like any other.
 
-```bash
+This CRD must be installed once for each cluster:
+
+```sh
 kubectl apply -f ./deploy/crds/app_v1alpha1_akkacluster_crd.yaml
+```
+
+One way to test if this worked is to run `kubectl get akkaclusters`. This should return an
+error if the CRD is not yet installed, explaining that this is an unknown resource type.
+
+```text
+$ kubectl get akkaclusters
+error: the server doesn't have a resource type "akkaclusters"
+```
+
+And if the CR is installed, you should see a normal response, like "No resources found."
+
+```text
+$ kubectl get akkaclusters
+No resources found.
 ```
 
 ## Install the controller
 
-in each namespace where akkacluster apps are desired
+Once the CRD is installed, the run-time controller for that resource must be installed and
+running for Kubernetes to act on AkkaCluster resources. This controller watches for
+resource changes related to AkkaClusters, and reconciles what is running with what is
+wanted just like a Deployment controller.
 
-```bash
+This must be installed in each namespace where AkkaClusters are expected.
+
+```sh
 kubectl apply -f ./deploy
 ```
 
+If this works, you should see an `akka-cluster-operator` deployment in the namespace.
+
+## Application requirements
+
+AkkaCluster applications are required to use Akka Management v1.x or newer, with
+both Bootstrap and HTTP modules enabled, and a `management` port defined.
+
+The minimal `application.conf` settings required are to enable kubernetes discovery:
+
+```hcon
+akka.management {
+  cluster.bootstrap {
+    contact-point-discovery {
+      discovery-method = kubernetes-api
+    }
+  }
+}
+```
+
 ## Demo application
+
+Here is an example Java application with those requirements. It forms a cluster, reports
+status, and has a visualizer endpoint so you can see cluster formation over members
+joining and leaving, and shards rebalancing over the cluster.
 
 [Akka Cluster visualizer](https://github.com/dbrinegar/akka-java-cluster-openshift)
 
