@@ -1,4 +1,32 @@
 apiVersion: app.lightbend.com/v1alpha1
 kind: AkkaCluster
 metadata:
-  name: example-akkacluster
+  name: akka-cluster-demo
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: main
+          image: lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.0.2
+          readinessProbe:
+            httpGet:
+              path: "/ready"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 10
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 10
+            initialDelaySeconds: 20
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: remoting
+              containerPort: 2552
+            - name: management
+              containerPort: 8558
