@@ -185,7 +185,7 @@ Then to validate the OLM manifest without running a Kubernetes cluster, one can 
 operator-courier --verbose verify ./deploy/olm-catalog/akka-cluster-operator
 ```
 
-and given a working Kubernetes cluster, one can run the `scorecard` tests. Here you must
+Given a working Kubernetes cluster, one can run the `scorecard` tests. Here you must
 specify an example application with `--cr-manifest`, which will be launched so that
 generated resources can be compared to `spec.customresourcedefinitions.owned.resources`.
 You must also specify the CSV with `--csv-path` plus the csv file name. Scorecard will
