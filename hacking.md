@@ -69,7 +69,7 @@ things.
 new top level fields and basic validation go, if you want `kubectl` to know a valid from
 invalid AkkaCluster.
 
-`./deploy/old-catalog/` has a nested OLM package, which should be updated on releases. The
+`./deploy/olm-catalog/` has a nested OLM package, which should be updated on releases. The
 primary source here are the "*clusterserviceversion.yaml" files, one for each version published.
 
 ## Unit testing
@@ -122,6 +122,17 @@ then loop on:
 
 and a demo app in minikube. This lets you run the operator locally, watch logs, watch
 mutations to resources within minikube.
+
+## Local build
+
+While typically you would run locally using `operator-sdk up local` you can also build the
+docker image using operator-sdk.
+
+```sh
+operator-sdk build akkacluster-operator:latest
+```
+
+Note that you'll then need to modify the Deployment to point to your local image.
 
 ## GitHub Actions
 
