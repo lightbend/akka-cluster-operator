@@ -1,6 +1,15 @@
 # Akka Cluster Operator (Incubating)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/lightbend/akka-cluster-operator)](https://goreportcard.com/report/github.com/lightbend/akka-cluster-operator)
+[![Go Report
+Card](https://goreportcard.com/badge/github.com/lightbend/akka-cluster-operator)](https://goreportcard.com/report/github.com/lightbend/akka-cluster-operator)
+<svg width="110" height="20">
+<a href="hacking.md">
+<rect width="100%" height="100%" fill="gray" rx="3"/>
+<text fill="white" font-size="12" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle">
+developer guide
+</text>
+</a>
+</svg>
 
 The Akka Cluster Operator runs applications built with the [Akka
 Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html) framework.
@@ -309,16 +318,3 @@ status, and has a visualizer endpoint so you can see cluster formation over memb
 joining and leaving, and shards rebalancing over the cluster.
 
 [Akka Cluster visualizer](https://github.com/dbrinegar/akka-java-cluster-openshift)
-
-## Hacking
-
-* install operator-sdk
-* start minikube
-* install the CRD
-* route pod network to macbook so operator can query akka management endpoints `sudo route -n add 172.17.0.0/16 $(minikube ip)`
-
-then loop on:
-
-* `operator-sdk up local`
-
-and a demo app
