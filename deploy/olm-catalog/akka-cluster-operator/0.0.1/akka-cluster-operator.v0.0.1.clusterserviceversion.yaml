@@ -223,11 +223,10 @@ spec:
       type: AllNamespaces
   maturity: alpha
   provider:
-    name: Lightbend, Inc.
+    name: Lightbend Inc.
   keywords: ["Akka", "Lightbend"]
   maintainers:
-    - name: Lightbend, Inc.
-      email: info@lightbend.com
+    - name: Lightbend Inc.
   links:
     - name: Intro to Akka
       url: https://doc.akka.io/docs/akka/current/guide/introduction.html
