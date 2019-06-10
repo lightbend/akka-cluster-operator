@@ -24,7 +24,7 @@ for interacting with application clusters, giving environmental context to each 
 handling requirements like keeping pod selectors unique and consistently specified, and
 provides a way to view cluster status in a Kubernetes resource.
 
-![Akka Cluster Operator diagram](akka-cluster-operator.png)
+![Akka Cluster Operator diagram](doc/images/akka-cluster-operator.png)
 
 ## Resources
 
@@ -41,7 +41,7 @@ Kubernetes API to list application pods, as part of determining cluster membersh
 this Operator creates a pod-listing ServiceAccount, Role, and RoleBinding suitable for
 each application, as well as supervises the Deployment for the application itself.
 
-![Akka Cluster resources](akka-cluster-resources.png)
+![Akka Cluster resources](doc/images/akka-cluster-resources.png)
 
 By default, the operator will create these sub-resources under each AkkaCluster:
 
@@ -222,7 +222,7 @@ Now set `replicas: 5`. The Operator will propagate that change down to the Deplo
 new pod with the same `template` will start. The Operator will start polling the cluster
 leader for status changes.
 
-![Akka Cluster Scale New Pod](akka-cluster-scale-new-pod.png)
+![Akka Cluster Scale New Pod](doc/images/akka-cluster-scale-new-pod.png)
 
 Once the application in the new pod starts, it initiates Akka Bootstrap. By way of the
 ServiceAccount that permits reading pods, it gets a list of pods from Kubernetes. These
@@ -233,7 +233,7 @@ The leader will add the node to the members list and mark it as **Joining** the 
 
 The Operator will update status to show the new node, and keep polling for status changes.
 
-![Akka Cluster Scale Joining](akka-cluster-scale-joining.png)
+![Akka Cluster Scale Joining](doc/images/akka-cluster-scale-joining.png)
 
 Presuming all is well and the cluster members can reach the new node, the leader will
 promote it to **Up** and it will start taking cluster work.
@@ -241,7 +241,7 @@ promote it to **Up** and it will start taking cluster work.
 The Operator will update status to show the new **Up** node, and from here will likely not
 get further status changes until some future change to pod resources.
 
-![Akka Cluster Scale Up](akka-cluster-scale-up.png)
+![Akka Cluster Scale Up](doc/images/akka-cluster-scale-up.png)
 
 ## Install the AkkaCluster Custom Resource Definition (CRD)
 
