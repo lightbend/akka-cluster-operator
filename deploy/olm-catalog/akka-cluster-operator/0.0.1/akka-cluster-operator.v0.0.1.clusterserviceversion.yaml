@@ -57,14 +57,12 @@ metadata:
           }
         }
       ]
-    # https://github.com/operator-framework/operator-lifecycle-manager/blob/master/Documentation/design/building-your-csv.md
-    # https://github.com/operator-framework/community-operators/blob/master/docs/required-fields.md
     capabilities: Seamless Upgrades
     categories: Application Runtime
     description: Run Akka Cluster applications in Kubernetes.
     containerImage: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
     createdAt: 2019-05-30T00:00:00Z
-    support: Lightbend
+    support: Lightbend, Inc.
     repository: https://github.com/lightbend/akka-cluster-operator
     certified: "false"
   name: akka-cluster-operator.v0.0.1
