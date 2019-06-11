@@ -226,6 +226,8 @@ spec:
   maintainers:
     - name: Lightbend Inc.
   links:
+    - name: Getting Started with Akka
+      url: https://www.lightbend.com/akka
     - name: Intro to Akka
       url: https://doc.akka.io/docs/akka/current/guide/introduction.html
     - name: Intro to Akka Cluster
