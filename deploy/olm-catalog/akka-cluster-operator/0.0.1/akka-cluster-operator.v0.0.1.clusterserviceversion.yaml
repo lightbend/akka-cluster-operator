@@ -2,6 +2,14 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
+    capabilities: Seamless Upgrades
+    categories: Application Runtime
+    certified: "false"
+    containerImage: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
+    createdAt: 2019-05-30T00:00:00Z
+    description: Run Akka Cluster applications in Kubernetes.
+    repository: https://github.com/lightbend/akka-cluster-operator
+    support: Lightbend, Inc.
     alm-examples: |-
       [
         {
@@ -57,14 +65,6 @@ metadata:
           }
         }
       ]
-    capabilities: Seamless Upgrades
-    categories: Application Runtime
-    description: Run Akka Cluster applications in Kubernetes.
-    containerImage: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
-    createdAt: 2019-05-30T00:00:00Z
-    support: Lightbend, Inc.
-    repository: https://github.com/lightbend/akka-cluster-operator
-    certified: "false"
   name: akka-cluster-operator.v0.0.1
   namespace: placeholder
 spec:
@@ -99,13 +99,12 @@ spec:
           - path: lastUpdate
           - path: managementHost
           - path: managementPort
-  # "description" is markdown for the operator's web page on operatorhub.io
   description: |
     The Akka Cluster Operator runs applications built with the Akka Cluster framework.
 
     Akka Cluster provides a fault-tolerant decentralized peer-to-peer based cluster
     membership service with no single point of failure. Akka cluster allows for building
-    distributed applications, where one application or service spans multiple nodes
+    distributed applications, where one application or service spans multiple nodes.
 
     Each AkkaCluster resource provides a Deployment spec for an application, which
     includes a number of replicas for nodes in the Akka Cluster. The framework calls the
@@ -226,14 +225,12 @@ spec:
   maintainers:
     - name: Lightbend Inc.
   links:
-    - name: Getting Started with Akka
-      url: https://www.lightbend.com/akka
     - name: Intro to Akka
       url: https://doc.akka.io/docs/akka/current/guide/introduction.html
     - name: Intro to Akka Cluster
       url: https://doc.akka.io/docs/akka/current/common/cluster.html
-    - name: Akka Cluster demo
-      url: https://github.com/dbrinegar/akka-java-cluster-openshift
+    - name: Akka Cluster demo application
+      url: https://github.com/lightbend/akka-java-cluster-openshift
     - name: Deploying a Lagom application to OpenShift
       url: https://developer.lightbend.com/guides/openshift-deployment/lagom/index.html
   version: 0.0.1
