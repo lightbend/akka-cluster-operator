@@ -2,14 +2,14 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    capabilities: Seamless Upgrades
+    capabilities: Basic Install
     categories: Application Runtime
-    certified: "false"
-    containerImage: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
+    certified: 'false'
+    containerImage: 'lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest'
     createdAt: 2019-05-30T00:00:00Z
     description: Run Akka Cluster applications in Kubernetes.
     repository: https://github.com/lightbend/akka-cluster-operator
-    support: Lightbend, Inc.
+    support: 'Lightbend, Inc.'
     alm-examples: |-
       [
         {
@@ -74,7 +74,7 @@ spec:
       - kind: AkkaCluster
         name: akkaclusters.app.lightbend.com
         version: v1alpha1
-        description: A demo app with cluster visualizer.
+        description: An example Akka Cluster app that provides cluster visualization.
         displayName: Akka Cluster
         resources:
           - kind: ServiceAccount
@@ -99,10 +99,19 @@ spec:
           - path: lastUpdate
           - path: managementHost
           - path: managementPort
+    required:
+      - name: ''
+        displayName: ''
+        kind: ''
+        version: ''
+        description: ''
   description: |
-    The Akka Cluster Operator runs applications built with the Akka Cluster framework.
+    The Akka Cluster Operator runs applications built with the
+    [Akka](https://doc.akka.io/docs/akka/current/guide/introduction.html)
+    framework using the AkkaCluster type.
 
-    Akka Cluster provides a fault-tolerant decentralized peer-to-peer based cluster
+    [Akka Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html) provides a
+    fault-tolerant decentralized peer-to-peer based cluster
     membership service with no single point of failure. Akka cluster allows for building
     distributed applications, where one application or service spans multiple nodes.
 
@@ -149,6 +158,7 @@ spec:
                     name: akka-cluster-operator
                     resources: {}
                 serviceAccountName: akka-cluster-operator
+      clusterPermissions: null
       permissions:
         - rules:
             - apiGroups:
@@ -219,11 +229,13 @@ spec:
     - supported: true
       type: AllNamespaces
   maturity: alpha
+  minKubeVersion: 1.11.0
   provider:
-    name: Lightbend Inc.
+    name: 'Lightbend, Inc.'
   keywords: ["Akka", "Lightbend"]
   maintainers:
-    - name: Lightbend Inc.
+    - name: 'Lightbend, Inc.'
+      email: info@lightbend.com
   links:
     - name: Intro to Akka
       url: https://doc.akka.io/docs/akka/current/guide/introduction.html
