@@ -309,7 +309,7 @@ Here is an example Java application with those requirements. It forms a cluster,
 status, and has a visualizer endpoint so you can see cluster formation over members
 joining and leaving, and shards rebalancing over the cluster.
 
-[Akka Cluster visualizer](https://github.com/dbrinegar/akka-java-cluster-openshift)
+[Akka Cluster visualizer](https://github.com/lightbend/akka-java-cluster-openshift)
 
 ## References
 
