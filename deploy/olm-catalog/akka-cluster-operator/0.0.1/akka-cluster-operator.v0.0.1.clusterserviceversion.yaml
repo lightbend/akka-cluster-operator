@@ -92,7 +92,7 @@ spec:
           - kind: ConfigMaps # operator-sdk uses this for leader election
             version: v1
         specDescriptors:
-          - description: 'How many pod instances should be members of the cluster'
+          - description: 'The desired number of pod instances in the Akka Cluster'
           - displayName: 'Replica Count'
           - path: replicas
           - path: template
