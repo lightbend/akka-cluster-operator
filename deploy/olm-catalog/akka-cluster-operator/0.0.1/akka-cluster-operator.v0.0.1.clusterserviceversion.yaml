@@ -1,6 +1,8 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
+  name: akka-cluster-operator.v0.0.1
+  namespace: placeholder
   annotations:
     capabilities: Seamless Upgrades
     categories: Application Runtime
@@ -65,8 +67,6 @@ metadata:
           }
         }
       ]
-  name: akka-cluster-operator.v0.0.1
-  namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
@@ -88,8 +88,6 @@ spec:
           - kind: ReplicaSet
             version: v1
           - kind: Pods
-            version: v1
-          - kind: ConfigMaps # operator-sdk uses this for leader election
             version: v1
         specDescriptors:
           - description: 'The desired number of pod instances in the Akka Cluster'
