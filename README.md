@@ -288,8 +288,7 @@ If this works, you should see an `akka-cluster-operator` deployment in the names
 
 ## Application requirements
 
-AkkaCluster applications are required to use Akka Management v1.x or newer, with
-both Bootstrap and HTTP modules enabled, and a `management` port defined.
+The AkkaCluster Operator is for use with applications using [Akka Management](https://doc.akka.io/docs/akka-management/current/) v1.x or newer, with both [Bootstrap](https://doc.akka.io/docs/akka-management/current/bootstrap/index.html) and [HTTP](https://doc.akka.io/docs/akka-management/current/cluster-http-management.html) modules enabled, and a management port defined to use discovery.
 
 The minimal `application.conf` settings required are to enable kubernetes discovery:
 
@@ -302,7 +301,17 @@ akka.management {
   }
 }
 ```
+The `ActorSystem` name should be unique for each desired application cluster.
 
+As noted in [Akka Cluster Bootstrap](https://doc.akka.io/docs/akka-management/current/bootstrap/index.html#using) "Akka management must be started as well as the bootstrap process." Be certain to include:
+
+```
+// Akka Management hosts the HTTP routes used by bootstrap
+AkkaManagement.get(system).start();
+
+// Starting the bootstrap process needs to be done explicitly
+ClusterBootstrap.get(system).start();
+```
 ## Demo application
 
 Here is an example Java application with those requirements. It forms a cluster, reports
