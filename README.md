@@ -3,8 +3,8 @@
 [![Go Report
 Card](https://goreportcard.com/badge/github.com/lightbend/akka-cluster-operator)](https://goreportcard.com/report/github.com/lightbend/akka-cluster-operator)
 
-The Akka Cluster Operator runs applications built with the [Akka
-Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html) framework.
+The Akka Cluster Operator runs applications built with [Akka
+Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html).
 
 Akka Cluster provides a fault-tolerant decentralized peer-to-peer based cluster membership
 service with no single point of failure. Akka Cluster allows for building distributed
@@ -36,7 +36,7 @@ think of this operator as Deployment Plus, meaning is just like a Deployment plu
 other things specific to Akka clustering.
 
 Each AkkaCluster resource provides a Deployment spec for an application, which includes a
-number of replicas for nodes in the Akka Cluster. The Akka Management framework calls the
+number of replicas for nodes in the Akka Cluster. The Akka Management component calls the
 Kubernetes API to list application pods, as part of determining cluster membership, so
 this Operator creates a pod-listing ServiceAccount, Role, and RoleBinding suitable for
 each application, as well as supervises the Deployment for the application itself.
