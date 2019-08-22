@@ -1,5 +1,5 @@
+name: build latest on push to master and release
 on:
-  name: build latest on push to master
   push:
     branches:
     - master
