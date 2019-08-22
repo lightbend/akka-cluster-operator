@@ -322,11 +322,11 @@ joining and leaving, and shards rebalancing over the cluster.
 
 ## GitHub Actions
 
-On every Pull Request ![pull_request.yml](.github/workflows/pull_request.yml)
+On every Pull Request [pull_request.yml](.github/workflows/pull_request.yml)
 
     * execute ` go test -race ./...`
 
-On every push to master  ![push.yml](.github/workflows/push.yml)
+On every push to master [push.yml](.github/workflows/push.yml)
 
     * checkout master.
     * build artifact akkacluster-operator:latest
