@@ -1,5 +1,8 @@
 on: push
 name: build latest on push to master
+branches:
+  - master
+  - release/*
 jobs:
   operator-sdk:
     runs-on: ubuntu-latest
@@ -15,10 +18,6 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         DOCKER_REGISTRY_URL: ${{ secrets.DOCKER_REGISTRY_URL }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-    - name: if master
-      uses: actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da
-      with:
-        args: branch master
     - name: push to bintray
       uses: actions/docker/cli@8cdf801b322af5f369e00d85e9cf3a7122f49108
       with:
