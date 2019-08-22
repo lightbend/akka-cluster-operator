@@ -1,3 +1,4 @@
+on: push
 push:
   name: build latest on push to master
   branches:
