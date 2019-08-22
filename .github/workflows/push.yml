@@ -1,9 +1,9 @@
-on: push
-push:
+on:
   name: build latest on push to master
-  branches:
-  - master
-  - release/*
+  push:
+    branches:
+    - master
+    - release/*
 jobs:
   operator-sdk:
     runs-on: ubuntu-latest
