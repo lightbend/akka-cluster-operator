@@ -1,6 +1,7 @@
 on: push
 name: build latest on push to master
-branches:
+push:
+  branches:
   - master
   - release/*
 jobs:
