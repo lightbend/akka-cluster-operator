@@ -320,6 +320,19 @@ joining and leaving, and shards rebalancing over the cluster.
 
 [Akka Cluster visualizer](https://github.com/lightbend/akka-java-cluster-openshift)
 
+## GitHub Actions
+
+On every Pull Request [pull_request.yml](.github/workflows/pull_request.yml)
+
+    * execute ` go test -race ./...`
+
+On every push to master [push.yml](.github/workflows/push.yml)
+
+    * checkout master.
+    * build artifact akkacluster-operator:latest
+    * publish to bintray.
+    * credentials are available in settings/secrets of the repo.
+
 ## References
 
 * [Akka](https://doc.akka.io/docs/akka/current/guide/introduction.html)
