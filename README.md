@@ -330,7 +330,7 @@ On every push to master [push.yml](.github/workflows/push.yml)
 
     * checkout master.
     * build artifact akkacluster-operator:latest
-    * publish to bintray.
+    * publish to bintray. https://bintray.com/lightbend/registry/lightbend/akkacluster-operator
     * credentials are available in settings/secrets of the repo.
 
 ## References
