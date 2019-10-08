@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: akka-cluster-operator
+  name: akka-cluster-operator-certified
 spec:
   replicas: 1
   selector:
@@ -14,7 +14,7 @@ spec:
     spec:
       serviceAccountName: akka-cluster-operator
       containers:
-        - name: akka-cluster-operator
+        - name: akka-cluster-operator-certified
           image: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
           command:
           - akka-cluster-operator
@@ -30,4 +30,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "akka-cluster-operator"
+              value: "akka-cluster-operator-certified"

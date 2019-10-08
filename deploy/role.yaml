@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
-  name: akka-cluster-operator
+  name: akka-cluster-operator-certified
 rules:
 - apiGroups:
   - ""
@@ -49,7 +49,7 @@ rules:
 - apiGroups:
   - apps
   resourceNames:
-  - akka-cluster-operator
+  - akka-cluster-operator-certified
   resources:
   - deployments/finalizers
   verbs:
