@@ -171,6 +171,6 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 		// first GetStatus() and update the cluster object, then poll for future change.
 		r.statusActor.StartPolling(akkaCluster)
 	}
-
+	r.client.Status().Update(context.TODO(), nil)
 	return reconcile.Result{}, nil
 }
