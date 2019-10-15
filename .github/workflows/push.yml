@@ -14,15 +14,13 @@ jobs:
       with:
         args: build lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
     - name: bintray login
-      uses: actions/docker/login@8cdf801b322af5f369e00d85e9cf3a7122f49108
+      run: docker login
       env:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         DOCKER_REGISTRY_URL: ${{ secrets.DOCKER_REGISTRY_URL }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
     - name: push to bintray
-      uses: actions/docker/cli@8cdf801b322af5f369e00d85e9cf3a7122f49108
-      with:
-        args: push lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
+      run: docker push lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
     - name: goreportcard
       uses: ./.github/action/curl
       with:
