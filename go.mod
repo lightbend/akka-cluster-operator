@@ -44,6 +44,8 @@ require (
 	github.com/matttproud/golang_protobuf_extensions v1.0.1
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
+	github.com/onsi/ginkgo v1.10.2 // indirect
+	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/operator-framework/operator-sdk v0.6.1-0.20190322190857-b7dd8232e32c
 	github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709
 	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c
@@ -63,7 +65,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
 	golang.org/x/net v0.0.0-20190324223953-e3b2ff56ed87
 	golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914
-	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc
 	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
@@ -84,5 +86,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20180711000925-0cf8f7e6ed1d
 	sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/controller-tools v0.1.8
+	sigs.k8s.io/testing_frameworks v0.1.2 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )
