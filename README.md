@@ -45,11 +45,11 @@ each application, as well as supervises the Deployment for the application itsel
 
 By default, the operator will create these sub-resources under each AkkaCluster:
 
-* a ServiceAccount to allow the application to list its own pods. Note that this does
+* A ServiceAccount to allow the application to list its own pods. Note that this does
   _not_ change the default ServiceAccount in the namespace, and every AkkaCluster
   application has its own ServiceAccount.
 
-* a Role to be a pod-reader, with RoleBinding to connect the ServiceAccount to the role
+* A Role to be a pod-reader, with RoleBinding to connect the ServiceAccount to the role
 
 * Deployment per specification, with default ServiceAccount, pod selector, rolling update
   strategy, and AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME environment settings.
