@@ -4,10 +4,10 @@ jobs:
   pullRequestOpened:
     name: pull request opened
     runs-on: ubuntu-latest
-    steps:
     on:
       pull_request:
         types: [opened, synchronize]
+    steps:
     - uses: actions/checkout@master
     - name: go test -race ./...
       uses: ./.github/action/go-tools
