@@ -5,11 +5,10 @@ jobs:
     name: pull request opened
     runs-on: ubuntu-latest
     steps:
+    on:
+      pull_request:
+        types: [opened, synchronize]
     - uses: actions/checkout@master
-    - name: filter on open and synchronize pull requests
-      uses: actions/bin/filter@3c0b4f0e63ea54ea5df2914b4fabf383368cd0da
-      with:
-        args: action 'opened|synchronize'
     - name: go test -race ./...
       uses: ./.github/action/go-tools
       with:
