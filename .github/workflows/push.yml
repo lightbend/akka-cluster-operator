@@ -13,14 +13,14 @@ jobs:
       uses: ./.github/action/operator-sdk
       with:
         args: build lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
-    - name: bintray login
-      run: docker login
+    - name: push to bintray
+      run: |
+        docker login ${DOCKER_REGISTRY_URL} --username ${DOCKER_USERNAME} --password "${DOCKER_PASSWORD}"
+        docker push lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
       env:
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         DOCKER_REGISTRY_URL: ${{ secrets.DOCKER_REGISTRY_URL }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-    - name: push to bintray
-      run: docker push lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
     - name: goreportcard
       uses: ./.github/action/curl
       with:
