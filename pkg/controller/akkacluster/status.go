@@ -234,6 +234,7 @@ func (a *StatusActor) update(req reconcile.Request) {
 
 		if currentStatus == nil {
 			// start from scratch next time, maybe picking different pod
+			poll.cluster.Status.LastUpdate = metav1.Now()
 			poll.cluster.Status.ManagementHost = ""
 		} else if !reflect.DeepEqual(currentStatus.Cluster, poll.cluster.Status.Cluster) {
 			// found a change: save it, signal upstream, stop polling

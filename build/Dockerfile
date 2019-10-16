@@ -2,7 +2,7 @@ FROM registry.access.redhat.com/ubi7-dev-preview/ubi-minimal:7.6
 
 ### Required OpenShift Certified Labels
 LABEL name="Akka Cluster Operator" \
-      vendor="Lightend, Inc." \
+      vendor="Lightbend, Inc." \
       version="v0.0.1" \
       release="0.0.1" \
       summary="Kubernetes Operator for Akka Cluster applications." \
