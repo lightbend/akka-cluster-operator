@@ -23,7 +23,7 @@ The above custom logic should hook pretty easily into any operator framework, an
 nothing that particularly requires operator-sdk except where it is used to validate OLM
 things. The heavy lifting outside of the above logic is all done in Kubernetes client
 code. Since this area is a fast moving target, the main thought here was just to use the
-native client libs which happen to be in go, so this is in go too. But this could all be
+native client libs which happen to be in Go, so this is in go too. But this could all be
 written in Scala if one wanted to be adventurous.
 
 ## Developer Setup
@@ -191,12 +191,11 @@ Then to validate the OLM manifest without running a Kubernetes cluster, one can 
 operator-courier --verbose verify ./deploy/olm-catalog/akka-cluster-operator
 ```
 
-Given a working Kubernetes cluster, one can run the `scorecard` tests. Here you must
-specify an example application with `--cr-manifest`, which will be launched so that
-generated resources can be compared to `spec.customresourcedefinitions.owned.resources`.
-You must also specify the CSV with `--csv-path` plus the csv file name. Scorecard will
-automatically pick up the CRD specification in `./deploy/`.
+Given a working Kubernetes cluster, including minikube, one can run the `scorecard` tests.
+With `operator-sdk` version v0.11.0, a config file is used to run scorecard, `.osdk-scorecard.yaml`.
+Enable Go 1.11 modules before running.
 
 ```sh
-operator-sdk scorecard --verbose --cr-manifest=deploy/crds/app_v1alpha1_akkacluster_cr.yaml --csv-path=deploy/olm-catalog/akka-cluster-operator/0.0.1/akka-cluster-operator.v0.0.1.clusterserviceversion.yaml
+export GO111MODULE=on
+operator-sdk scorecard
 ```
