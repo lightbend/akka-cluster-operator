@@ -21,6 +21,7 @@ jobs:
         DOCKER_REGISTRY_URL: ${{ secrets.DOCKER_REGISTRY_URL }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        GO111MODULE: "on"
     - name: goreportcard
       uses: ./.github/action/curl
       with:
