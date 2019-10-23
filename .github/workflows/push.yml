@@ -10,6 +10,8 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: operator-sdk
+      env:
+        GO111MODULE: "on"
       uses: ./.github/action/operator-sdk
       with:
         args: build lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
