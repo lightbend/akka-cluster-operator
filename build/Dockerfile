@@ -9,6 +9,7 @@ LABEL name="Akka Cluster Operator" \
       description="Manage applications designed for [Akka Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html) and the Lightbend Platform."
 
 # Required to be in /licenses
+RUN  mkdir /licenses
 COPY LICENSE /licenses
 
 ENV OPERATOR=/usr/local/bin/akka-cluster-operator \
