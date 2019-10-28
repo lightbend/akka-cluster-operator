@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7-dev-preview/ubi-minimal:7.6
+FROM registry.access.redhat.com/ubi7/ubi-minimal:7.7
 
 ### Required OpenShift Certified Labels
 LABEL name="Akka Cluster Operator" \
