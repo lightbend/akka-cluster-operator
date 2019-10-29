@@ -250,4 +250,3 @@ spec:
     - name: Deploying a Lagom application to OpenShift
       url: https://developer.lightbend.com/guides/openshift-deployment/lagom/index.html
   version: 0.0.1
-  
