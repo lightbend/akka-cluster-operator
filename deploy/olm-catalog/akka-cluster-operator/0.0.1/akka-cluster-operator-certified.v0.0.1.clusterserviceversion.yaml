@@ -1,15 +1,15 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: akka-cluster-operator.v0.0.1
+  name: akka-cluster-operator-certified.v0.0.1
   namespace: placeholder
   annotations:
     capabilities: Seamless Upgrades
     categories: Application Runtime
     certified: 'false'
-    containerImage: 'lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:0.0.1'
+    containerImage: 'registry.connect.redhat.com/lightbend/akka-cluster-operator:0.0.7'
     createdAt: '2019-06-28T15:23:00Z'
-    description: Run Akka Cluster applications on Kubernetes.
+    description: Run Akka Cluster applications on OpenShift.
     repository: https://github.com/lightbend/akka-cluster-operator
     support: 'Lightbend, Inc.'
     alm-examples: |-
@@ -157,7 +157,7 @@ spec:
                             fieldPath: metadata.name
                       - name: OPERATOR_NAME
                         value: akka-cluster-operator
-                    image: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:0.0.1
+                    image: registry.connect.redhat.com/lightbend/akka-cluster-operator:0.0.7
                     imagePullPolicy: Always
                     name: akka-cluster-operator
                     resources: {}
