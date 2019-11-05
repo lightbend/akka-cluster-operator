@@ -90,25 +90,37 @@ spec:
           - kind: Pods
             version: v1
         specDescriptors:
-          - description: 'The desired number of pod instances in the Akka Cluster'
-            displayName: 'Replica Count'
+          - description: The desired number of pod instances in the Akka Cluster
+            displayName: Replica Count
             path: replicas
-          - description: 'The template used to form the cluster'
-            displayName: 'Template'
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:number'
+          - description: The template used to form the cluster
+            displayName: Template
             path: template
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:text'
         statusDescriptors:
-          - description: 'Information on the cluster'
-            displayName: 'Cluster'
+          - description: Information on the cluster
+            displayName: Cluster
             path: cluster
-          - description: 'The last time the status changed'
-            displayName: 'Last Update'
+            x-descriptors:
+              - 'urn:alm:descriptor:text'
+          - description: The last time the status changed
+            displayName: Last Update
             path: lastUpdate
+            x-descriptors:
+              - 'urn:alm:descriptor:text'
           - description: 'The host of the (host,port) pair used to obtain the cluster status'
-            displayName: 'Management Host'
+            displayName: Management Host
             path: managementHost
+            x-descriptors:
+              - 'urn:alm:descriptor:text'
           - description: 'The port of the (host,port) pair used to obtain the cluster status'
-            displayName: 'Management Port'
+            displayName: Management Port
             path: managementPort
+            x-descriptors:
+              - 'urn:alm:descriptor:text'
   description: |
     The Akka Cluster Operator allows you to manage applications designed for
     [Akka Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html).
@@ -162,7 +174,65 @@ spec:
                     name: akka-cluster-operator
                     resources: {}
                 serviceAccountName: akka-cluster-operator
-      permissions: []
+      permissions:
+        - serviceAccountName: akka-cluster-operator
+          rules:
+            - apiGroups:
+                - ''
+              resources:
+                - pods
+                - services
+                - endpoints
+                - persistentvolumeclaims
+                - events
+                - configmaps
+                - secrets
+                - serviceaccounts
+              verbs:
+                - '*'
+            - apiGroups:
+                - rbac.authorization.k8s.io
+              resources:
+                - roles
+                - rolebindings
+              verbs:
+                - '*'
+            - apiGroups:
+                - ''
+              resources:
+                - namespaces
+              verbs:
+                - get
+            - apiGroups:
+                - apps
+              resources:
+                - deployments
+                - daemonsets
+                - replicasets
+                - statefulsets
+              verbs:
+                - '*'
+            - apiGroups:
+                - monitoring.coreos.com
+              resources:
+                - servicemonitors
+              verbs:
+                - get
+                - create
+            - apiGroups:
+                - apps
+              resourceNames:
+                - akka-cluster-operator
+              resources:
+                - deployments/finalizers
+              verbs:
+                - update
+            - apiGroups:
+                - app.lightbend.com
+              resources:
+                - '*'
+              verbs:
+                - '*'
       clusterPermissions:
         - rules:
             - apiGroups:
@@ -222,46 +292,6 @@ spec:
               verbs:
                 - "*"
           serviceAccountName: akka-cluster-operator
-      deployments:
-        - name: akkaclusteroperator-deployment
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
-                name: akka-cluster-operator
-            template:
-              metadata:
-                labels:
-                  name: akka-cluster-operator
-              spec:
-                containers:
-                  - command:
-                      - akka-cluster-operator
-                    env:
-                      - name: WATCH_NAMESPACE
-                        valueFrom:
-                          fieldRef:
-                            apiVersion: v1
-                            fieldPath: 'metadata.annotations[''olm.targetNamespaces'']'
-                      - name: POD_NAME
-                        valueFrom:
-                          fieldRef:
-                            apiVersion: v1
-                            fieldPath: metadata.name
-                      - name: OPERATOR_NAME
-                        value: akka-cluster-operator
-                    image: registry.connect.redhat.com/lightbend/akka-cluster-operator:0.2.1
-                    imagePullPolicy: Always
-                    name: akka-cluster-operator
-                    resources:
-                      limits:
-                        cpu: 200m
-                        memory: 100Mi
-                      requests:
-                        cpu: 100m
-                        memory: 50Mi
-                serviceAccount: akka-cluster-operator
-                serviceAccountName: akka-cluster-operator
     strategy: deployment
   installModes:
     - supported: true
