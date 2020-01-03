@@ -36,13 +36,11 @@ See the installation instructions at [OperatorHub.io](https://operatorhub.io/ope
 
 ## Demo application
 
-The Akka Cluster Operator manages users defined applications built using Akka Cluster and deployed as a AkkaCluster.
+The Akka Cluster Operator manages user defined applications built using Akka Cluster and deployed as an [AkkaCluster](https://github.com/lightbend/akka-java-cluster-openshift/blob/master/kubernetes/akka-cluster.yml#L2).
 
-Here is an example Java application with those requirements. It forms a cluster, reports
+[Akka Cluster visualizer](https://github.com/lightbend/akka-java-cluster-openshift) is an example Java application with those requirements. It forms a cluster, reports
 status, and has a visualizer endpoint so you can see the application cluster formation over members
 joining and leaving, and shards rebalancing over the cluster.
-
-[Akka Cluster visualizer](https://github.com/lightbend/akka-java-cluster-openshift)
 
 ## Resources
 

@@ -4,10 +4,7 @@ Assumed background: Kubernetes controllers, operator-sdk or similar, custom reso
 
 ## Developer Setup
 
-This is a Go project. The repo needs to be in your GOPATH. To build and test this operator you need:
-
-* Go, docker, kubectl, et al
-* [operator-sdk](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md)
+This is an Go project. To build and test this operator you also need the [operator-sdk](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md).
 
 Use of [Go modules](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md#go-modules),
 per the [Go modules Wiki](https://github.com/golang/go/wiki/Modules), requires invoking Go outside of the `src` folder
