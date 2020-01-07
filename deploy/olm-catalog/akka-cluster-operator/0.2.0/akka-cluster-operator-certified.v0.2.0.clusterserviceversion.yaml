@@ -7,7 +7,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Application Runtime
     certified: 'false'
-    containerImage: 'registry.connect.redhat.com/lightbend/akka-cluster-operator:0.2.1'
+    containerImage: 'registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0'
     createdAt: '2019-06-28T15:23:00Z'
     description: Run Akka Cluster applications on Kubernetes.
     repository: https://github.com/lightbend/akka-cluster-operator
@@ -169,7 +169,7 @@ spec:
                             fieldPath: metadata.name
                       - name: OPERATOR_NAME
                         value: akka-cluster-operator
-                    image: registry.connect.redhat.com/lightbend/akka-cluster-operator:0.2.1
+                    image: registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0
                     imagePullPolicy: Always
                     name: akka-cluster-operator
                     resources: {}
@@ -326,4 +326,3 @@ spec:
     - name: Deploying a Lagom application to OpenShift
       url: https://developer.lightbend.com/guides/openshift-deployment/lagom/index.html
   version: 0.2.0
-  replaces: akka-cluster-operator.v0.0.1
