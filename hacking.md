@@ -2,6 +2,16 @@
 
 Assumed background: Kubernetes controllers, operator-sdk or similar, custom resource definitions
 
+## Developer Setup
+
+This is a Go project. To build and test this operator you also need the [operator-sdk](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md).
+
+Use of [Go modules](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md#go-modules),
+per the [Go modules Wiki](https://github.com/golang/go/wiki/Modules), requires invoking Go outside of the `src` folder
+or setting `export GO111MODULE=on`.
+
+See the Operator-Framework [Community Operators](https://github.com/operator-framework/community-operators/tree/master/docs) docs for instructions for PR'ing OperatorHub.io with new versions.
+
 ## Concept map
 
 The AkkaCluster operator is similar in concept to a Deployment controller, in that it
@@ -25,12 +35,6 @@ things. The heavy lifting outside of the above logic is all done in Kubernetes c
 code. Since this area is a fast moving target, the main thought here was just to use the
 native client libs which happen to be in Go, so this is in go too. But this could all be
 written in Scala if one wanted to be adventurous.
-
-## Developer Setup
-
-Use of [Go modules](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md#go-modules),
-per the [Go modules Wiki](https://github.com/golang/go/wiki/Modules), requires invoking Go outside of the `src` folder
-or setting `export GO111MODULE=on`.
 
 ## Code map
 
@@ -146,10 +150,73 @@ CI/CD is done via GitHub Actions, as seen in `./.github/main.workflow`. PRs must
 tests, and merges to master trigger goreportcard updates and docker image builds that get
 pushed to bintray.
 
+On every Pull Request [pull_request.yml](.github/workflows/pull_request.yml)
+
+    * execute ` go test -race ./...`
+
+On every push to master [push.yml](.github/workflows/push.yml)
+
+    * checkout master.
+    * build artifact akkacluster-operator:latest
+    * publish to bintray.
+    * credentials are available in settings/secrets of the repo.
+
 The `./.github/actions/operator-sdk/` docker image works off a pinned version of
 operator-sdk so will have to be updated regularly to keep up with changes.
 
+## Manual Installation
+
+In order to install versions of the Operator other than those published on [Operatorhub](https://operatorhub.io/operator/akka-cluster-operator), one can:
+* Install manually, without OLM, which is described below.
+* Use the [configMap technique](https://www.youtube.com/watch?v=6OfJOr5llkY).
+* Publish to a test [Quay.io](https://quay.io/) repository, see [testing-operators](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md) in community-operators.
+
+### Install the AkkaCluster Custom Resource Definition (CRD)
+
+For Kubernetes to understand AkkaCluster resources, each cluster must have the CRD
+installed. This yaml specifies the schema of an AkkaCluster resource, and registers it in
+the API layer so that `kubectl` and controllers and other API clients can interact with
+AkkaCluster resources just like any other.
+
+This CRD must be installed once for each cluster:
+
+```sh
+kubectl apply -f ./deploy/crds/app_v1alpha1_akkacluster_crd.yaml
+```
+
+One way to test if this worked is to run `kubectl get akkaclusters`. This should return an
+error if the CRD is not yet installed, explaining that this is an unknown resource type.
+
+```text
+$ kubectl get akkaclusters
+error: the server doesn't have a resource type "akkaclusters"
+```
+
+If the CR is installed, you should see a normal response, like "No resources found."
+
+```text
+$ kubectl get akkaclusters
+No resources found.
+```
+
+### Install the controller
+
+Once the CRD is installed, the run-time controller for that resource must be installed and
+running for Kubernetes to act on AkkaCluster resources. This controller watches for
+resource changes related to AkkaClusters, and reconciles what is running with what is
+wanted just like a Deployment controller.
+
+This must be installed in each namespace where AkkaClusters are expected.
+
+```sh
+kubectl apply -f ./deploy
+```
+
+If this works, you should see an `akka-cluster-operator` deployment in the namespace.
+
 ## OLM manifests
+
+The OperatorHub dev site, [https://dev.operatorhub.io/](https://dev.operatorhub.io/) includes 'beta' CSV generation and validation tooling. The dev.operatorhub.io tooling helps developers manage the manifests.
 
 The OLM manifest is a [ClusterServiceVersion (csv) yaml
 file](https://github.com/operator-framework/operator-lifecycle-manager/blob/master/Documentation/design/building-your-csv.md).

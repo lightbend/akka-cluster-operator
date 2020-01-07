@@ -4,27 +4,43 @@
 Card](https://goreportcard.com/badge/github.com/lightbend/akka-cluster-operator)](https://goreportcard.com/report/github.com/lightbend/akka-cluster-operator)
 
 The Akka Cluster Operator runs applications built with [Akka
-Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html).
+Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html) on Kubernetes.
 
-Akka Cluster provides a fault-tolerant decentralized peer-to-peer based cluster membership
+Akka Cluster provides a fault-tolerant, decentralized, peer-to-peer based cluster membership
 service with no single point of failure. Akka Cluster allows for building distributed
 applications, where one application or service spans multiple nodes.
 
 Akka applications can be run in Kubernetes as plain Deployments using [Akka
 Management](https://doc.akka.io/docs/akka-management/current/), which provides bootstrap
-via Kubernetes API and cluster status via HTTP. See for example this [guide to deploying
+via the Kubernetes API and cluster status via HTTP. See, for example, this [guide to deploying
 Lagom on
 OpenShift.](https://developer.lightbend.com/guides/openshift-deployment/lagom/index.html)
 One can carefully configure the application to keep environment settings separate from
 application settings, to achieve the ability to deploy the same application into different
 environments without rebuilding the application itself.
 
-This operator then builds on those foundations, providing a top level AkkaCluster resource
+This operator builds upon those foundations, providing a top level AkkaCluster resource
 for interacting with application clusters, giving environmental context to each instance,
 handling requirements like keeping pod selectors unique and consistently specified, and
-provides a way to view cluster status in a Kubernetes resource.
+providing a way to view cluster status in a Kubernetes resource.
 
 ![Akka Cluster Operator diagram](doc/images/akka-cluster-operator.png)
+
+## Operator Installation
+
+The Akka Cluster Operator can be installed from [OperatorHub.io](https://operatorhub.io/operator/akka-cluster-operator).
+
+OperatorHub Operators require the Operator Lifecycle Manager (OLM) controller extensions. With the OLM extensions available, the Akka Cluster Operator can be installed directly from the OperatorHub repository.
+
+See the installation instructions at [OperatorHub.io](https://operatorhub.io/operator/akka-cluster-operator) for the exact commands.
+
+## Demo application
+
+The Akka Cluster Operator manages user defined applications built using Akka Cluster and deployed as an [AkkaCluster](https://github.com/lightbend/akka-java-cluster-openshift/blob/master/kubernetes/akka-cluster.yml#L2).
+
+[Akka Cluster visualizer](https://github.com/lightbend/akka-java-cluster-openshift) is an example Java application with those requirements. It forms a cluster, reports
+status, and has a visualizer endpoint so you can see the application cluster formation over members
+joining and leaving, and shards rebalancing over the cluster.
 
 ## Resources
 
@@ -243,49 +259,6 @@ get further status changes until some future change to pod resources.
 
 ![Akka Cluster Scale Up](doc/images/akka-cluster-scale-up.png)
 
-## Install the AkkaCluster Custom Resource Definition (CRD)
-
-For Kubernetes to understand AkkaCluster resources, each cluster must have the CRD
-installed. This yaml specifies the schema of an AkkaCluster resource, and registers it in
-the API layer so that `kubectl` and controllers and other API clients can interact with
-AkkaCluster resources just like any other.
-
-This CRD must be installed once for each cluster:
-
-```sh
-kubectl apply -f ./deploy/crds/app_v1alpha1_akkacluster_crd.yaml
-```
-
-One way to test if this worked is to run `kubectl get akkaclusters`. This should return an
-error if the CRD is not yet installed, explaining that this is an unknown resource type.
-
-```text
-$ kubectl get akkaclusters
-error: the server doesn't have a resource type "akkaclusters"
-```
-
-And if the CR is installed, you should see a normal response, like "No resources found."
-
-```text
-$ kubectl get akkaclusters
-No resources found.
-```
-
-## Install the controller
-
-Once the CRD is installed, the run-time controller for that resource must be installed and
-running for Kubernetes to act on AkkaCluster resources. This controller watches for
-resource changes related to AkkaClusters, and reconciles what is running with what is
-wanted just like a Deployment controller.
-
-This must be installed in each namespace where AkkaClusters are expected.
-
-```sh
-kubectl apply -f ./deploy
-```
-
-If this works, you should see an `akka-cluster-operator` deployment in the namespace.
-
 ## Application requirements
 
 The AkkaCluster Operator is for use with applications using [Akka Management](https://doc.akka.io/docs/akka-management/current/) v1.x or newer, with both [Bootstrap](https://doc.akka.io/docs/akka-management/current/bootstrap/index.html) and [HTTP](https://doc.akka.io/docs/akka-management/current/cluster-http-management.html) modules enabled, and a management port defined to use discovery.
@@ -312,27 +285,6 @@ AkkaManagement.get(system).start();
 // Starting the bootstrap process needs to be done explicitly
 ClusterBootstrap.get(system).start();
 ```
-## Demo application
-
-Here is an example Java application with those requirements. It forms a cluster, reports
-status, and has a visualizer endpoint so you can see cluster formation over members
-joining and leaving, and shards rebalancing over the cluster.
-
-[Akka Cluster visualizer](https://github.com/lightbend/akka-java-cluster-openshift)
-
-## GitHub Actions
-
-On every Pull Request [pull_request.yml](.github/workflows/pull_request.yml)
-
-    * execute ` go test -race ./...`
-
-On every push to master [push.yml](.github/workflows/push.yml)
-
-    * checkout master.
-    * build artifact akkacluster-operator:latest
-    * publish to bintray.
-    * credentials are available in settings/secrets of the repo.
-
 ## References
 
 * [Akka](https://doc.akka.io/docs/akka/current/guide/introduction.html)
