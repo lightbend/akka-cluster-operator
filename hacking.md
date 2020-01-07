@@ -4,7 +4,7 @@ Assumed background: Kubernetes controllers, operator-sdk or similar, custom reso
 
 ## Developer Setup
 
-This is an Go project. To build and test this operator you also need the [operator-sdk](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md).
+This is a Go project. To build and test this operator you also need the [operator-sdk](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md).
 
 Use of [Go modules](https://github.com/operator-framework/operator-sdk/blob/master/doc/user-guide.md#go-modules),
 per the [Go modules Wiki](https://github.com/golang/go/wiki/Modules), requires invoking Go outside of the `src` folder
@@ -167,7 +167,7 @@ operator-sdk so will have to be updated regularly to keep up with changes.
 ## Manual Installation
 
 In order to install versions of the Operator other than those published on [Operatorhub](https://operatorhub.io/operator/akka-cluster-operator), one can:
-* Install manually, without OLM, described below.
+* Install manually, without OLM, which is described below.
 * Use the [configMap technique](https://www.youtube.com/watch?v=6OfJOr5llkY).
 * Publish to a test [Quay.io](https://quay.io/) repository, see [testing-operators](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md) in community-operators.
 
@@ -192,7 +192,7 @@ $ kubectl get akkaclusters
 error: the server doesn't have a resource type "akkaclusters"
 ```
 
-And if the CR is installed, you should see a normal response, like "No resources found."
+If the CR is installed, you should see a normal response, like "No resources found."
 
 ```text
 $ kubectl get akkaclusters
