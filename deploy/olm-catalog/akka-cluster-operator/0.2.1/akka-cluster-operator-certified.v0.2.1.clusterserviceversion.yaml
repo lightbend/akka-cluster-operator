@@ -6,7 +6,7 @@ metadata:
   annotations:
     capabilities: Seamless Upgrades
     categories: Application Runtime
-    certified: 'false'
+    certified: 'true'
     containerImage: 'registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0'
     createdAt: '2019-06-28T15:23:00Z'
     description: Run Akka Cluster applications on Kubernetes.
