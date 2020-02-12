@@ -81,6 +81,8 @@ invalid AkkaCluster.
 
 `./deploy/olm-catalog/` has a nested OLM package, which should be updated on releases. The
 primary source here are the "*clusterserviceversion.yaml" files, one for each version published.
+Certified versions of the CSVs are of the format `-certified.*.clusterserviceversion.yaml`.
+Certified container images, including the Operator, are published and distributed separately.
 
 ## Unit testing
 
@@ -223,7 +225,8 @@ file](https://github.com/operator-framework/operator-lifecycle-manager/blob/mast
 Broadly speaking, this is a collection of 1. marketing material describing the catalog web
 page content 2. installation specification corresponding to a version of the operator. It
 may be desirable to build a release template for this manifest as it will need to be
-copied and slightly altered for each release.
+copied and slightly altered for each release. In practice, it has been easier to regenerate the CSV
+using the OperatorHub Beta [Package](https://operatorhub.io/bundle) tool.
 
 The `spec.install` section is a kind of copy of the operator Deployment, so changes to the
 deploy resources will need to be reflected here.
