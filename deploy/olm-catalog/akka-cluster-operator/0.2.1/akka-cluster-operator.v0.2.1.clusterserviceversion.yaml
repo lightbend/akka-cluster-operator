@@ -97,17 +97,6 @@ spec:
             displayName: 'Template'
             path: template
         statusDescriptors:
-          - description: The desired number of pod instances in the Akka Cluster
-            displayName: Replica Count
-            path: replicas
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:number'
-          - description: The template used to form the cluster
-            displayName: Template
-            path: template
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:text'
-        statusDescriptors:
           - description: Information on the cluster
             displayName: Cluster
             path: cluster
