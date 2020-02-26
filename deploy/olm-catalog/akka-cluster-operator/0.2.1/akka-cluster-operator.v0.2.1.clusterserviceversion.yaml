@@ -298,10 +298,6 @@ spec:
       type: MultiNamespace
     - supported: true
       type: AllNamespaces
-  keywords:
-    - Akka
-    - Akka Cluster
-    - Lightbend
   labels:
     Name: akka-cluster-operator
   maturity: alpha
