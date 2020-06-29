@@ -170,8 +170,8 @@ spec:
                       - name: OPERATOR_NAME
                         value: akka-cluster-operator
                       - name: RELATED_IMAGE_CONTROLLER
-                        value: registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0
-                    image: registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0
+                        value: registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.2
+                    image: registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.2
                     imagePullPolicy: Always
                     name: akka-cluster-operator
                     resources: {}
