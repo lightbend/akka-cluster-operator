@@ -165,7 +165,7 @@ spec:
                             fieldPath: metadata.name
                       - name: OPERATOR_NAME
                         value: akka-cluster-operator
-                    image: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:v0.2.0
+                    image: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:v0.2.2
                     imagePullPolicy: Always
                     name: akka-cluster-operator
                     resources: {}

@@ -1,13 +1,13 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: akka-cluster-operator-certified.v0.2.1
+  name: akka-cluster-operator.v0.2.3
   namespace: placeholder
   annotations:
     capabilities: Seamless Upgrades
     categories: Application Runtime
-    certified: 'true'
-    containerImage: 'registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0'
+    certified: 'false'
+    containerImage: 'lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:v1.0.0'
     createdAt: '2019-06-28T15:23:00Z'
     description: Run Akka Cluster applications on Kubernetes.
     repository: https://github.com/lightbend/akka-cluster-operator
@@ -27,7 +27,7 @@ metadata:
                 "containers": [
                   {
                     "name": "main",
-                    "image": "lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.0.2",
+                    "image": "lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.1.0",
                     "readinessProbe": {
                       "httpGet": {
                         "path": "/ready",
@@ -90,16 +90,12 @@ spec:
           - kind: Pods
             version: v1
         specDescriptors:
-          - description: The desired number of pod instances in the Akka Cluster
-            displayName: Replica Count
+          - description: 'The desired number of pod instances in the Akka Cluster'
+            displayName: 'Replica Count'
             path: replicas
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:number'
-          - description: The template used to form the cluster
-            displayName: Template
+          - description: 'The template used to form the cluster'
+            displayName: 'Template'
             path: template
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:text'
         statusDescriptors:
           - description: Information on the cluster
             displayName: Cluster
@@ -135,7 +131,6 @@ spec:
     this Operator creates a pod-listing ServiceAccount, Role, and RoleBinding suitable for
     each application. See the project [Readme](https://github.com/lightbend/akka-cluster-operator/blob/master/README.md)
     for more information and details.
-    This is an incubating project in alpha version.
   displayName: Akka Cluster Operator
   icon: # Akka icon from https://www.lightbend.com/brand
     - base64data: PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NTggMjcwIj48dGl0bGU+YWtrYS1mdWxsLWNvbG9yPC90aXRsZT48ZyBpZD0iYWtrYS1mdWxsLWNvbG9yIj48cGF0aCBkPSJNMzQ5LjY0LDEwNS40NlY5My4zNGgxOS45MnY1OC40NGMwLDcuMTMsMS42Niw5Ljc5LDYuMTQsOS43OSwxLjE3LDAsMi42Ni0uMTcsNC4xNS0uMzN2MTYuMWEyOC43MSwyOC43MSwwLDAsMS05Ljc5LDEuMzNjLTQuODEsMC04LjYzLS44My0xMS42Mi0yLjY2YTE1LjQxLDE1LjQxLDAsMCwxLTYuODEtMTAuMTJDMzQ1LjgyLDE3NC42OCwzMzYuMiwxNzksMzIyLjkyLDE3OUEzOS43NCwzOS43NCwwLDAsMSwyOTMsMTY2LjM4Yy04LTguNDYtMTItMTguNzUtMTItMzEuMnM0LTIyLjc1LDEyLTMxLjA1YTM5Ljc3LDM5Ljc3LDAsMCwxLDI5Ljg4LTEyLjYxQzMzNi4zNiw5MS41MiwzNDYuNDksOTcuNDksMzQ5LjY0LDEwNS40NlptLTYsNDhhMjQuNDIsMjQuNDIsMCwwLDAsNy40Ny0xOC4yNiwyNC4zOSwyNC4zOSwwLDAsMC03LjQ3LTE4LjI2LDI0Ljc5LDI0Ljc5LDAsMCwwLTE4LjEtNy4zMSwyNCwyNCwwLDAsMC0xNy43Niw3LjMxYy00LjY1LDQuODEtNywxMS03LDE4LjI2czIuMzIsMTMuNDQsNywxOC4yNmEyNCwyNCwwLDAsMCwxNy43Niw3LjNBMjQuODIsMjQuODIsMCwwLDAsMzQzLjY3LDE1My40NFoiIGZpbGw9IiMwYjU1NjciLz48cGF0aCBkPSJNMzg4LjQ4LDE3N1Y2MS4zMWgxOS43NnY2Ny41NmwzMC44Ny0zNS41M0g0NjJsLTMyLjcsMzcuMzVMNDY1LjUxLDE3N0g0NDIuOTNsLTI2LjM5LTMzLjctOC4zLDkuM1YxNzdaIiBmaWxsPSIjMGI1NTY3Ii8+PHBhdGggZD0iTTQ3MC44MiwxNzdWNjEuMzFoMTkuNzV2NjcuNTZsMzAuODgtMzUuNTNoMjIuOTFsLTMyLjcsMzcuMzVMNTQ3Ljg0LDE3N0g1MjUuMjdsLTI2LjQtMzMuNy04LjMsOS4zVjE3N1oiIGZpbGw9IiMwYjU1NjciLz48cGF0aCBkPSJNNjA3Ljg3LDEwNS40NlY5My4zNGgxOS45MnY1OC40NGMwLDcuMTMsMS42Niw5Ljc5LDYuMTQsOS43OSwxLjE3LDAsMi42Ni0uMTcsNC4xNS0uMzN2MTYuMWEyOC43MSwyOC43MSwwLDAsMS05Ljc5LDEuMzNjLTQuODEsMC04LjYzLS44My0xMS42Mi0yLjY2YTE1LjQxLDE1LjQxLDAsMCwxLTYuODEtMTAuMTJjLTUuODEsOC43OS0xNS40MywxMy4xMS0yOC43MSwxMy4xMWEzOS43NCwzOS43NCwwLDAsMS0yOS44OC0xMi42MmMtOC04LjQ2LTEyLTE4Ljc1LTEyLTMxLjJzNC0yMi43NSwxMi0zMS4wNWEzOS43NywzOS43NywwLDAsMSwyOS44OC0xMi42MUM1OTQuNTksOTEuNTIsNjA0LjcyLDk3LjQ5LDYwNy44NywxMDUuNDZabS02LDQ4YTI0LjQyLDI0LjQyLDAsMCwwLDcuNDctMTguMjYsMjQuMzksMjQuMzksMCwwLDAtNy40Ny0xOC4yNiwyNC43OSwyNC43OSwwLDAsMC0xOC4xLTcuMzFBMjQsMjQsMCwwLDAsNTY2LDExNi45MmMtNC42NSw0LjgxLTcsMTEtNywxOC4yNnMyLjMyLDEzLjQ0LDcsMTguMjZhMjQsMjQsMCwwLDAsMTcuNzYsNy4zQTI0LjgyLDI0LjgyLDAsMCwwLDYwMS45LDE1My40NFoiIGZpbGw9IiMwYjU1NjciLz48cGF0aCBkPSJNMjMwLjI2LDIxMi44MmMzNS44OCwyOC42Nyw1OC45MS01NywxLjc0LTcyLjgyLTQ4LTEzLjI5LTk2LjMzLDkuNS0xNDQuNjYsNjIuNzRDODcuMzQsMjAyLjc0LDE3Ni42NywxNzAsMjMwLjI2LDIxMi44MloiIGZpbGw9IiMwYjU1NjciLz48cGF0aCBkPSJNODguMDgsMjAyYzM0LjQxLTM1LjY5LDkxLjY0LTc1LjUzLDE0NC45LTYwLjc1QTQ2LjA5LDQ2LjA5LDAsMCwxLDI1OS45LDE2MC42TDIwOS40OCw1OC43OGMtNy4yLTExLjQ2LTI1LjU4LTkuMTUtMzUuOTUtLjI2TDQwLjI5LDE3MC4wN2EyNy40LDI3LjQsMCwwLDAtMS41Niw0MC4xNWwwLDBhMjcuNCwyNy40LDAsMCwwLDM2LjUxLDJMODguMTQsMjAyWiIgZmlsbD0iIzE1YTljZSIvPjwvZz48L3N2Zz4=
@@ -169,9 +164,7 @@ spec:
                             fieldPath: metadata.name
                       - name: OPERATOR_NAME
                         value: akka-cluster-operator
-                      - name: RELATED_IMAGE_CONTROLLER
-                        value: registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0
-                    image: registry.connect.redhat.com/lightbend/akka-cluster-operator-certified:0.2.0
+                    image: lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:v1.0.0
                     imagePullPolicy: Always
                     name: akka-cluster-operator
                     resources: {}
@@ -305,8 +298,8 @@ spec:
     - supported: true
       type: AllNamespaces
   labels:
-    Name: AkkaClusterOperator
-  maturity: alpha
+    Name: akka-cluster-operator
+  maturity: stable
   minKubeVersion: 1.11.0
   provider:
     name: 'Lightbend, Inc.'
@@ -323,6 +316,5 @@ spec:
       url: https://github.com/lightbend/akka-java-cluster-openshift
     - name: Deploying a Lagom application to OpenShift
       url: https://developer.lightbend.com/guides/openshift-deployment/lagom/index.html
-  version: 0.2.1
-  replaces: akka-cluster-operator-certified.v0.2.0
-
+  version: 0.2.3
+  replaces: akka-cluster-operator.v0.2.0

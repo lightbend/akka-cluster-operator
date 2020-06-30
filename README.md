@@ -1,4 +1,4 @@
-# Akka Cluster Operator (Incubating)
+# Akka Cluster Operator
 
 [![Go Report
 Card](https://goreportcard.com/badge/github.com/lightbend/akka-cluster-operator)](https://goreportcard.com/report/github.com/lightbend/akka-cluster-operator)
@@ -105,7 +105,7 @@ spec:
       - env:
         - name: AKKA_CLUSTER_BOOTSTRAP_SERVICE_NAME
           value: akka-cluster-demo
-        image: akka-cluster-demo:1.0.2
+        image: akka-cluster-demo:1.1.0
         # ...
       serviceAccountName: akka-cluster-demo
 ```
@@ -212,7 +212,7 @@ spec:
     spec:
       containers:
       - name: main
-        image: lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.0.2
+        image: lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.1.0
         ports:
         - name: http
           containerPort: 8080
