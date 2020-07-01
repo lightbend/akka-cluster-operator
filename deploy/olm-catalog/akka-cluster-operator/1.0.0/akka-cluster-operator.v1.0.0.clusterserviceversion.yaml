@@ -1,7 +1,7 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: akka-cluster-operator.v0.2.3
+  name: akka-cluster-operator.v1.0.0
   namespace: placeholder
   annotations:
     capabilities: Seamless Upgrades
@@ -316,5 +316,5 @@ spec:
       url: https://github.com/lightbend/akka-java-cluster-openshift
     - name: Deploying a Lagom application to OpenShift
       url: https://developer.lightbend.com/guides/openshift-deployment/lagom/index.html
-  version: 0.2.3
-  replaces: akka-cluster-operator.v0.2.0
+  version: 1.0.0
+  replaces: akka-cluster-operator.v0.2.3
