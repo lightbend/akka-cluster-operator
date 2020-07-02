@@ -3,8 +3,8 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 ### Required OpenShift Certified Labels
 LABEL name="Akka Cluster Operator" \
       vendor="Lightbend, Inc." \
-      version="v0.2.2" \
-      release="0.2.2" \
+      version="v1.0.0" \
+      release="1.0.0" \
       summary="Kubernetes Operator for Akka Cluster applications." \
       description="Manage applications designed for [Akka Cluster](https://doc.akka.io/docs/akka/current/common/cluster.html) and the Lightbend Platform."
 
