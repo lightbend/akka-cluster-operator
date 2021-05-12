@@ -14,11 +14,11 @@ jobs:
         GO111MODULE: "on"
       uses: ./.github/action/operator-sdk
       with:
-        args: build lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
-    - name: push to bintray
+        args: build registry.lightbend.com/lightbend-akkacluster-operator:latest
+    - name: push to Lightbend registry
       run: |
         docker login ${DOCKER_REGISTRY_URL} --username ${DOCKER_USERNAME} --password "${DOCKER_PASSWORD}"
-        docker push lightbend-docker-registry.bintray.io/lightbend/akkacluster-operator:latest
+        docker push registry.lightbend.com/lightbend-akkacluster-operator:latest
       env:
         DOCKER_REGISTRY_URL: ${{ secrets.DOCKER_REGISTRY_URL }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

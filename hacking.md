@@ -150,18 +150,18 @@ Note that you'll then need to modify the Deployment to point to your local image
 
 CI/CD is done via GitHub Actions, as seen in `./.github/main.workflow`. PRs must pass unit
 tests, and merges to master trigger goreportcard updates and docker image builds that get
-pushed to bintray.
+pushed to Lightbend registry.
 
 On every Pull Request [pull_request.yml](.github/workflows/pull_request.yml)
 
-    * execute ` go test -race ./...`
+* execute ` go test -race ./...`
 
 On every push to master [push.yml](.github/workflows/push.yml)
 
-    * checkout master.
-    * build artifact akkacluster-operator:latest
-    * publish to bintray.
-    * credentials are available in settings/secrets of the repo.
+* checkout master.
+* build artifact akkacluster-operator:latest
+* publish to Lightbend registry.
+* credentials are available in settings/secrets of the repo.
 
 The `./.github/actions/operator-sdk/` docker image works off a pinned version of
 operator-sdk so will have to be updated regularly to keep up with changes.

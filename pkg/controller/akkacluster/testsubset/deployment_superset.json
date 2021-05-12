@@ -55,7 +55,7 @@
                                 "value": "akka-cluster-demo"
                             }
                         ],
-                        "image": "lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.0.2",
+                        "image": "registry.lightbend.com/lightbend-akka-cluster-demo:1.0.2",
                         "imagePullPolicy": "IfNotPresent",
                         "livenessProbe": {
                             "failureThreshold": 10,
