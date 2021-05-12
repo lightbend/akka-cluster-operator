@@ -212,7 +212,7 @@ spec:
     spec:
       containers:
       - name: main
-        image: lightbend-docker-registry.bintray.io/lightbend/akka-cluster-demo:1.1.0
+        image: registry.lightbend.com/lightbend-akka-cluster-demo:1.1.0
         ports:
         - name: http
           containerPort: 8080
@@ -222,8 +222,8 @@ spec:
           containerPort: 8558
 ```
 
-From that AkkaCluster resource, the Operator has made a Deployment, a ServiceAccount, Role
-and RoleBinding, and has set workable defaults for Akka Management. These defaults include
+From that `AkkaCluster` resource, the Operator has made a `Deployment`, a `ServiceAccount`, `Role`
+and `RoleBinding`, and has set workable defaults for Akka Management. These defaults include
 
 * `spec.selector` so the ReplicaSet works correctly and on the same selector basis as Akka
   Bootstrap
