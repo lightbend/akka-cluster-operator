@@ -1,6 +1,8 @@
-# golang:1 is the tag for latest 1.x stable release
+# golang:1.15 is the tag for latest 1.15 stable release
+# keep this in sync with go-tools image and go.mod file.
+#
 # using alpine variant only because "apk add docker" is easier than on debian
-FROM golang:1-alpine3.9
+FROM golang:1.15-alpine3.13
 
 # labels for github actions UI
 LABEL "com.github.actions.name"="operator-sdk"

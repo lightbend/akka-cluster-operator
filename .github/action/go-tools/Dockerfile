@@ -1,5 +1,6 @@
-# use latest 1.x stable release
-FROM golang:1
+# use latest 1.15 stable release
+# this is in sync with go.mod
+FROM golang:1.15
 
 # labels for github actions UI
 LABEL "com.github.actions.name"="go-tools"
