@@ -169,6 +169,7 @@ operator-sdk so will have to be updated regularly to keep up with changes.
 ## Manual Installation
 
 In order to install versions of the Operator other than those published on [Operatorhub](https://operatorhub.io/operator/akka-cluster-operator), one can:
+
 * Install manually, without OLM, which is described below.
 * Use the [configMap technique](https://www.youtube.com/watch?v=6OfJOr5llkY).
 * Publish to a test [Quay.io](https://quay.io/) repository, see [testing-operators](https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md) in community-operators.
@@ -262,7 +263,7 @@ operator-courier --verbose verify ./deploy/olm-catalog/akka-cluster-operator
 ```
 
 Given a working Kubernetes cluster, including minikube, one can run the `scorecard` tests.
-With `operator-sdk` version v0.11.0, a config file is used to run scorecard, `.osdk-scorecard.yaml`.
+With `operator-sdk` version v0.12.0, a config file is used to run scorecard, `.osdk-scorecard.yaml`.
 Enable Go 1.11 modules before running.
 
 ```sh

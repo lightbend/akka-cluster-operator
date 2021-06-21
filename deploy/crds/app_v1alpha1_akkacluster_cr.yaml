@@ -4,6 +4,9 @@ metadata:
   name: akka-cluster-demo
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: akka-cluster-demo
   template:
     spec:
       containers:

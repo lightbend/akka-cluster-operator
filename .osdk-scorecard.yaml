@@ -9,4 +9,4 @@ scorecard:
     - olm:
         cr-manifest:
           - "deploy/crds/app_v1alpha1_akkacluster_cr.yaml"
-        csv-path: "deploy/olm-catalog/akka-cluster-operator/0.2.0/akka-cluster-operator.v0.2.0.clusterserviceversion.yaml"
+        csv-path: "deploy/olm-catalog/akka-cluster-operator/1.0.3/akka-cluster-operator.v1.0.3.clusterserviceversion.yaml"
