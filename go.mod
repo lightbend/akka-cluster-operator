@@ -6,7 +6,7 @@ require (
 	github.com/go-openapi/spec v0.19.4
 	github.com/google/go-cmp v0.3.1
 	github.com/onsi/ginkgo v1.10.2 // indirect
-	github.com/operator-framework/operator-sdk v0.15.2
+	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0

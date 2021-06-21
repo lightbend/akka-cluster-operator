@@ -77,6 +77,10 @@ spec:
         description: An example Akka Cluster app that provides cluster visualization.
         displayName: Akka Cluster
         resources:
+          - kind: ConfigMap
+            version: v1
+          - kind: AkkaCluster
+            version: v1alpha1
           - kind: ServiceAccount
             version: v1
           - kind: Role
