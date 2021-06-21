@@ -263,7 +263,7 @@ operator-courier --verbose verify ./deploy/olm-catalog/akka-cluster-operator
 ```
 
 Given a working Kubernetes cluster, including minikube, one can run the `scorecard` tests.
-With `operator-sdk` version v0.12.0, a config file is used to run scorecard, `.osdk-scorecard.yaml`.
+With `operator-sdk` version v0.14.1, a config file is used to run scorecard, `.osdk-scorecard.yaml`.
 Enable Go 1.11 modules before running.
 
 ```sh
