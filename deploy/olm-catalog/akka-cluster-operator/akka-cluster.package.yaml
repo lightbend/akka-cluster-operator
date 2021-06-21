@@ -1,5 +1,5 @@
 packageName: akka-cluster
 channels:
   - name: alpha
-    currentCSV: akka-cluster-operator.v1.0.2
+    currentCSV: akka-cluster-operator.v1.0.3
 defaultChannel: alpha

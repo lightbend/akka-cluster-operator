@@ -96,6 +96,9 @@ spec:
           - description: 'The template used to form the cluster'
             displayName: 'Template'
             path: template
+          - description: The selector data used
+            displayName: Selector
+            path: selector
         statusDescriptors:
           - description: Information on the cluster
             displayName: Cluster
@@ -184,14 +187,26 @@ spec:
                 - secrets
                 - serviceaccounts
               verbs:
-                - '*'
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
             - apiGroups:
                 - rbac.authorization.k8s.io
               resources:
                 - roles
                 - rolebindings
               verbs:
-                - '*'
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
             - apiGroups:
                 - ''
               resources:
@@ -206,7 +221,13 @@ spec:
                 - replicasets
                 - statefulsets
               verbs:
-                - '*'
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
             - apiGroups:
                 - monitoring.coreos.com
               resources:
@@ -227,7 +248,13 @@ spec:
               resources:
                 - '*'
               verbs:
-                - '*'
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
       clusterPermissions:
         - rules:
             - apiGroups:
@@ -242,14 +269,26 @@ spec:
                 - secrets
                 - serviceaccounts
               verbs:
-                - "*"
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
             - apiGroups:
                 - rbac.authorization.k8s.io
               resources:
                 - roles
                 - rolebindings
               verbs:
-                - "*"
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
             - apiGroups:
                 - ""
               resources:
@@ -264,7 +303,13 @@ spec:
                 - replicasets
                 - statefulsets
               verbs:
-                - "*"
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
             - apiGroups:
                 - monitoring.coreos.com
               resources:
@@ -285,7 +330,13 @@ spec:
               resources:
                 - "*"
               verbs:
-                - "*"
+                - create
+                - delete
+                - get
+                - list
+                - patch
+                - update
+                - watch
           serviceAccountName: akka-cluster-operator
     strategy: deployment
   installModes:
