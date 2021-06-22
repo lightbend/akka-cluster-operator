@@ -91,7 +91,7 @@ func (p *controllerPodLister) ListPods(cluster *appv1alpha1.AkkaCluster) *corev1
 		Namespace:     cluster.Namespace,
 		LabelSelector: labels.SelectorFromSet(cluster.Spec.Selector.MatchLabels),
 	}
-	p.List(context.TODO(), listOps, pods)
+	p.List(context.TODO(), pods, listOps)
 	return pods
 }
 

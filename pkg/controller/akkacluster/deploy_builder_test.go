@@ -31,6 +31,10 @@ func (firstVersioner) KindForGroupVersionKinds(kinds []schema.GroupVersionKind) 
 	return kinds[0], true
 }
 
+func (firstVersioner) Identifier() string {
+	return "" // only relevant for tests
+}
+
 // yamlizers returns decoder, encoder suitable for testing
 func yamlizers() (func([]byte) runtime.Object, func(runtime.Object, io.Writer) error) {
 	// add our custom resources like AkkaCluster et al to runtime Scheme
