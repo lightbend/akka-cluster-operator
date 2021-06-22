@@ -18,4 +18,4 @@ jobs:
         GO111MODULE: "on"
       uses: ./.github/action/operator-sdk
       with:
-        args: build registry.lightbend.com/lightbend-akkacluster-operator:${{ env.GITHUB_SHA }}
+        args: build registry.lightbend.com/lightbend-akkacluster-operator:latest
