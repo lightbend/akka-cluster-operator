@@ -1,5 +1,5 @@
 # use latest 1.x stable release
-FROM golang:1
+FROM golang:1.13
 
 # labels for github actions UI
 LABEL "com.github.actions.name"="go-tools"
