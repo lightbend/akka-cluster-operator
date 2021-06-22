@@ -1,6 +1,4 @@
-# golang:1 is the tag for latest 1.x stable release
-# using alpine variant only because "apk add docker" is easier than on debian
-FROM golang:1-alpine3.9
+FROM golang:1.13-alpine3.12
 
 # labels for github actions UI
 LABEL "com.github.actions.name"="operator-sdk"
@@ -23,7 +21,7 @@ RUN chmod +x ${sdk_cli}
 #   curl https://get.docker.com/ | sh
 #
 # could also add "alpine-sdk" to apk add to enable the go tools from this image
-RUN apk add --update docker
+RUN apk add --update --no-cache docker
 
 # usage: in GitHub Actions, execute "operator-sdk build image:version"
 COPY entrypoint /entrypoint
