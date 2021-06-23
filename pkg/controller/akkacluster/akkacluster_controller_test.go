@@ -48,7 +48,7 @@ func TestAkkaController(t *testing.T) {
 	// mock context for reconciler
 	scheme := scheme.Scheme
 	scheme.AddKnownTypes(appv1alpha1.SchemeGroupVersion, akkaCluster)
-	client := fake.NewFakeClient(akkaCluster)
+	client := fake.NewFakeClientWithScheme(scheme, akkaCluster)
 	r := &ReconcileAkkaCluster{client: client, scheme: scheme}
 
 	// mock event loop
