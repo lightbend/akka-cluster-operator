@@ -13,9 +13,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	appv1alpha1 "github.com/lightbend/akka-cluster-operator/pkg/apis/app/v1alpha1"
@@ -139,12 +139,13 @@ func (r *ReconcileAkkaCluster) Reconcile(request reconcile.Request) (reconcile.R
 			reqLogger.Info("Creating resource", "kind", kind)
 			return reconcile.Result{Requeue: true}, nil
 		}
-		// Update cluster resource to wanted resource, if needed.
+		// Patch cluster resource to wanted resource, if needed.
 		if !SubsetEqual(wantedResource, clusterResource) {
 			reqLogger.Info("applying update", "kind", kind, "match")
 
-			if err := r.client.Update(context.TODO(), wantedResource); err != nil {
-				reqLogger.Info("Tried to update resource", "kind", kind, "error", err)
+			// patch.Merge uses the raw object as a merge patch, without modifications.
+			if err := r.client.Patch(context.TODO(), wantedResource, client.Merge); err != nil {
+				reqLogger.Info("Tried to patch resource", "kind", kind, "error", err)
 				return reconcile.Result{}, err
 			}
 			return reconcile.Result{Requeue: true}, nil
