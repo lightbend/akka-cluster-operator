@@ -1,6 +1,7 @@
+# This project is not maintained and will not see further updates
+
 # Akka Cluster Operator
 
-[![Go Report
 Card](https://goreportcard.com/badge/github.com/lightbend/akka-cluster-operator)](https://goreportcard.com/report/github.com/lightbend/akka-cluster-operator)
 
 The Akka Cluster Operator runs applications built with [Akka
